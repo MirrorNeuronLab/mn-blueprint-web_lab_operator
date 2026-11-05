@@ -6,10 +6,16 @@ from pathlib import Path
 from mn_sdk.blueprint.inputs import capture_declared_inputs
 
 from .memory import LabMemory
+from .planning_ui import planning_view
 from .protocol import numbered_instructions
 
 
 def capture(block, inputs):
+    with planning_view(block, 'preparing'):
+        return _capture(block, inputs)
+
+
+def _capture(block, inputs):
     values = capture_declared_inputs(block, inputs, runtime_file=__file__)
     markdown, filename = values.get('procedure_markdown', ''), values.get('procedure_file', '')
     if not isinstance(markdown, str) or not isinstance(filename, str):

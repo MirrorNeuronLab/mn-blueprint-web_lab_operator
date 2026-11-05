@@ -2,6 +2,7 @@
 
 import asyncio
 from concurrent.futures import Future
+from contextlib import contextmanager
 from threading import Thread
 
 from .live_ui import LiveLabUi
@@ -66,21 +67,28 @@ class PlanningUi:
             await ui.close(status)
 
 
-def _start(block, phase):
+@contextmanager
+def planning_view(block, phase):
+    """Keep the native deck's lifetime inside the domain work that uses it."""
     view = PlanningUi(block, phase)
-    block.resources['web_lab_planning_ui'] = view
-    view.start()
-
-
-def prepare(block, _inputs):
-    _start(block, 'preparing')
-
-
-def plan(block, _inputs):
-    _start(block, 'planning')
-
-
-def stop(block, outcome):
-    view = block.resources.pop('web_lab_planning_ui', None)
-    if view is not None:
-        view.stop('stopped' if outcome['status'] == 'completed' else outcome['status'])
+    status, failure = 'failed', None
+    try:
+        block.check()
+        view.start()
+        block.check()
+        yield
+        block.check()
+        status = 'stopped'
+    except BaseException as error:
+        failure = error
+        if getattr(error, 'code', '') == 'cancelled':
+            status = 'cancelled'
+        raise
+    finally:
+        try:
+            view.stop(status)
+        except BaseException:
+            if failure is None:
+                raise
+            failure.add_note('The planning deck also failed to close.')
+    block.check()

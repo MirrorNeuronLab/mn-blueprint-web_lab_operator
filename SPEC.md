@@ -112,8 +112,10 @@ runtime resource contract), without a GPU vendor or driver restriction. Nodes
 below this memory requirement cannot host the Job. Docker worker and model
 execution reuse the Job's allocation.
 
-Four logical steps compose existing SDK blocks. The shared structured-assessment
-block owns initial model execution. The simulation hook uses the existing managed
+Four logical steps compose existing SDK domain-operation blocks. Planning uses
+the SDK's managed model request journal and validates the authored block output
+schema. Intake and planning own their empty-deck listeners through domain-scoped
+cleanup, without requiring batch resource hooks. The simulation hook uses the existing managed
 model request journal and scoped checkpoints for its domain-specific procedure
 loop. It owns no message routing, ACK/retry logic or Core completion protocol.
 The existing Web UI binding and claim contract carries a single HTTP/WebSocket

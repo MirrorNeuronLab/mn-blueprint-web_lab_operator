@@ -200,11 +200,13 @@ failure cannot invalidate an already recorded simulation or required report.
 ## Runtime composition and privacy
 
 `capture_lab_procedure` → `plan_lab_procedure` → `simulate_lab_procedure` →
-`publish_lab_review` uses stock `domain_operation` and `structured_assessment`
+`publish_lab_review` uses stock `domain_operation`
 blocks. SDK input capture, managed model journals, checkpoints, publication and
 Web UI claims and Membrane persistence retain their existing owners. Intake and
-planning require the blocks package with paired batch resource hooks; use a
-desktop build that follows changes to the runtime UI claim. Domain policy, the
+planning scope their own deck listeners, including failure
+and cancellation cleanup, using the supported blocks 1.3.73 contract. Planning
+uses the SDK's managed model request journal and the block's output schema. Use
+a desktop build that follows changes to the runtime UI claim. Domain policy, the
 PyLabRobot integration and selected presentation live under `payloads/domain/`.
 
 The Python 3.12 Docker image installs pinned PyLabRobot and WebSocket versions.
