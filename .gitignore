@@ -1,0 +1,68 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+
+# Python packaging and build output
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+pip-wheel-metadata/
+*.whl
+
+# Test and coverage output
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+junit*.xml
+.tox/
+.nox/
+# Generated in-memory test sessions
+:memory:.ses
+
+# Virtual environments and local env files
+.venv/
+venv/
+env/
+ENV/
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.development
+!.env.production
+
+# Node and frontend build output
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+.next/
+.vite/
+.turbo/
+coverage/
+
+# Elixir build output
+_build/
+deps/
+*.beam
+.elixir_ls/
+
+# Generated SDK/client output
+generated/
+generated-sources/
+.openapi-generator/
+
+# Local machine and IDE files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
