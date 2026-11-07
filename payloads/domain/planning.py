@@ -7,6 +7,7 @@ from jsonschema import Draft202012Validator
 from mn_sdk.blueprint.context import source_manifest
 from mn_sdk.blueprint.models import model_request
 
+from .planning_schema import protocol_plan, response_schema
 from .planning_ui import planning_view
 from .protocol import validate_plan
 
@@ -17,10 +18,11 @@ def run(block, inputs):
         schema = declaration['metadata']['mn_blocks']['steps'][block.step_id]['output_schema']
         value = _plan(block, inputs, schema)
         Draft202012Validator(schema).validate(value)
-        return validate_plan(value)
+        return validate_plan(value, inputs['procedure']['markdown'])
 
 
 def _plan(block, inputs, schema):
+    schema = response_schema(schema)
     llm = block.config['llm']
     settings = llm['configs'][llm['default_config']]
     prompt = (Path(__file__).resolve().parents[1] / 'prompts/plan.md').read_text(encoding='utf-8')
@@ -38,9 +40,16 @@ def _plan(block, inputs, schema):
                     'timeout_seconds': settings['timeout_seconds'], 'structured_output': True},
     }, key='procedure-plan')
     choices = response.get('choices')
+    if isinstance(choices, list) and choices and choices[0].get('finish_reason') == 'length':
+        raise ValueError('The model reached the lab plan output token limit. No simulation actions were started.')
     if not isinstance(choices, list) or not choices or choices[0].get('finish_reason') != 'stop':
         raise ValueError('The model did not return a complete lab plan.')
     content = choices[0].get('message', {}).get('content')
     if not isinstance(content, str) or len(content.encode()) > 256000:
         raise ValueError('The lab plan exceeds its text limit.')
-    return json.loads(content)
+    try:
+        value = json.loads(content)
+    except json.JSONDecodeError as error:
+        raise ValueError('The model returned invalid JSON for the lab plan. No simulation actions were started.') from error
+    Draft202012Validator(schema).validate(value)
+    return protocol_plan(value)

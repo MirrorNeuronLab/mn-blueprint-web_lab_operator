@@ -110,7 +110,8 @@ is committed before a recovery notice can be sent.
 Admission requires at least one GPU and 48 GB of GPU memory (49,152 MB in the
 runtime resource contract), without a GPU vendor or driver restriction. Nodes
 below this memory requirement cannot host the Job. Docker worker and model
-execution reuse the Job's allocation.
+execution reuse the Job's allocation. Explicit node selection cannot bypass
+this hardware floor.
 
 Four logical steps compose existing SDK domain-operation blocks. Planning uses
 the SDK's managed model request journal and validates the authored block output
@@ -142,6 +143,17 @@ startup and validation. Its enclosing Docker command has a 1,620-second budget
 so the block owns deadline failure and cleanup. Preparation heartbeats without
 byte counts do not by themselves establish a failure. Planning makes one model
 call with zero retries.
+
+Version 1.4.2 derives the model response schema from the block's declared plan
+schema, grouping each step's operation-specific fields under `parameters`.
+Every step variant shares `id`, `instruction_lines` and `kind` before those
+parameters, including after canonical key sorting. Constrained generation can
+select transfer, mix, wait or check_volume before selecting that operation's
+fields. Validate this model shape before projecting it into the unchanged flat
+execution protocol, then validate source coverage before the simulation phase.
+Self-transfers and destinations used as alternate sources remain invalid.
+Truncated output and malformed JSON are distinct observable planning failures;
+neither is repaired, retried or replaced with a deterministic plan.
 
 At most 80 steps execute inside the 900-second simulation-phase budget, also
 bounded by the block deadline. Checks occur between simulator calls and animation

@@ -15,7 +15,8 @@ liquid volumes and tips; they do not establish experimental or physical results.
 
 Use a runtime node with at least one GPU and 48 GB of GPU memory. The GPU
 vendor is unrestricted. The Job's allocation is shared by its Docker worker
-and model requests.
+and model requests. The 48 GB minimum is a hard requirement for the whole Job;
+nodes below it are rejected even when selected explicitly.
 
 Prepare a MirrorNeuron Docker worker, the runtime's configured text model and
 its matching authenticated Membrane v2 context service,
@@ -120,6 +121,15 @@ The planner checks final goals against that feasible conditional branch and
 keeps starting inventory separate from expected final volumes.
 Planning and adaptive requests use temperature zero; model interpretation still
 requires the schema, policy and observed-result checks described below.
+The planning response groups each step's operation fields under `parameters`,
+so constrained generation selects `kind` before operation-specific fields even
+when schema keys are sorted. The blueprint validates this response and projects
+it into the existing flat execution plan; `plan.json` keeps its existing format.
+Mixes, waits and checks have distinct parameter schemas and cannot be represented
+as self-transfers. Instruction coverage is checked before simulation starts.
+Token-limit truncation and invalid JSON produce distinct planning errors and
+never trigger an automatic repeat request or a synthesized plan. Refresh an
+existing hired co-worker's prepared Job definition to use the updated planner.
 The simulator selects the reserve after observing the deck, takes the complete
 amount from it and leaves the short primary unchanged.
 

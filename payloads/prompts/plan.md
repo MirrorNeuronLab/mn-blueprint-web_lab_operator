@@ -12,6 +12,18 @@ step's instruction_lines; do not recount lines or use the instruction's list
 number. Every supplied instruction must map to one or more steps. Preserve order
 and requested transfer amounts. For check_volume, put the lower requested bound
 in minimum_ul and the upper bound in maximum_ul.
+Each response step has id, instruction_lines, kind and parameters. Choose kind
+from the source instruction BEFORE filling parameters. Put only that operation's
+fields inside parameters. Examples of the four distinct operation shapes:
+- transfer: {"source":"feed/A1","destination":"receiver/A1","volume_ul":75,"alternate_sources":[]}
+- mix: {"well":"receiver/A1","volume_ul":50,"cycles":3}
+- wait: {"seconds":5}
+- check_volume: {"well":"receiver/A1","minimum_ul":74.9,"maximum_ul":75.1}
+These are shape examples, not procedure data. A mix uses kind mix and preserves
+its cycle count; it is never a transfer from a well to itself. A check uses kind
+check_volume and never moves liquid. A wait uses kind wait and has no well.
+Transfer source and destination must differ, and the destination cannot be an
+alternate source. Never replace a non-transfer instruction with a transfer.
 Use lower_snake_case plate names and unique lower_snake_case step IDs.
 Well addresses are plate/A1 through plate/H12. All initial wells not explicitly
 filled in the supplied inventory are empty. Liquid labels describe nominal
