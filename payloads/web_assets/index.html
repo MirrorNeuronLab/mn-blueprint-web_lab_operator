@@ -4,15 +4,35 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Web lab</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="style.css">
-  <script src="app.js" defer></script>
 </head>
 <body>
   <main>
     <section aria-label="Simulated deck" class="deck-panel">
-      <iframe id="visualizer" title="PyLabRobot visualizer" src="visualizer/index.html"></iframe>
-      <div id="deck" hidden></div>
-      <output id="well-detail" role="status" hidden></output>
+      <header class="deck-toolbar">
+        <div class="deck-heading">
+          <h2>Simulated deck</h2>
+          <span id="tip-count" hidden></span>
+        </div>
+        <div id="deck-tools" role="group" aria-label="Deck view" hidden>
+          <button id="zoom-out" type="button" aria-label="Zoom out" title="Zoom out">−</button>
+          <button id="zoom-in" type="button" aria-label="Zoom in" title="Zoom in">+</button>
+          <button id="fit-deck" type="button">Fit deck</button>
+        </div>
+      </header>
+      <div class="workcell">
+        <canvas id="deck" role="img" aria-label="3D lab deck" aria-describedby="deck-keys" tabindex="0"></canvas>
+        <div id="deck-labels" aria-hidden="true" hidden><span id="deck-target" class="lab-label" hidden></span></div>
+        <p id="deck-help" aria-hidden="true" hidden>Drag to rotate · Scroll to zoom</p>
+        <span id="deck-keys" class="sr-only">Use arrow keys to rotate, plus or minus to zoom, and Home to fit the deck.</span>
+        <p id="deck-unavailable" role="status" hidden>3D view unavailable in this browser.</p>
+      </div>
+      <div id="well-inspector" hidden>
+        <label>Plate <select id="plate"></select></label>
+        <label>Well <select id="well"></select></label>
+        <output id="well-detail" role="status" for="plate well"></output>
+      </div>
     </section>
     <section id="replay" hidden aria-label="Replay controls">
       <button id="previous" type="button">Previous</button><button id="play" type="button">Play</button>
@@ -20,6 +40,11 @@
       <button id="next" type="button">Next</button>
     </section>
     <section class="activity" aria-label="Event stream">
+      <details id="saved-assessment" hidden>
+        <summary>Saved simulation assessment</summary>
+        <p id="assessment-outcome"></p>
+        <p id="assessment-evidence"></p>
+      </details>
       <div class="identity"><h2>Events</h2><div class="state"><span id="status" role="status">Connecting</span><span id="progress"></span></div></div>
       <div id="operation" role="status" hidden><span id="current-step" class="step"></span><span id="operation-label"></span></div>
       <ol id="events"></ol>
@@ -28,5 +53,9 @@
       <p id="connection" role="alert" hidden>Connection lost. Reconnecting…</p>
     </section>
   </main>
+  <script src="vendor/three.min.js" defer></script>
+  <script src="equipment.js" defer></script>
+  <script src="deck.js" defer></script>
+  <script src="app.js" defer></script>
 </body>
 </html>

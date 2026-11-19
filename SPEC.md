@@ -120,8 +120,8 @@ cleanup, without requiring batch resource hooks. The simulation hook uses the ex
 model request journal and scoped checkpoints for its domain-specific procedure
 loop. It owns no message routing, ACK/retry logic or Core completion protocol.
 The existing Web UI binding and claim contract carries a single HTTP/WebSocket
-listener serving the native PyLabRobot visualizer and bounded monitor state.
-Intake and planning publish the native empty deck before reading inputs or
+listener serving the bundled 3D workcell and bounded monitor state.
+Intake and planning publish the empty workcell before reading inputs or
 calling the model. No wells, volumes or remaining tip count are projected until
 the validated plan reaches simulation. Each phase owns one generation of the
 required listener, closed on success, failure, partial startup or cancellation.
@@ -144,7 +144,7 @@ so the block owns deadline failure and cleanup. Preparation heartbeats without
 byte counts do not by themselves establish a failure. Planning makes one model
 call with zero retries.
 
-Version 1.4.2 derives the model response schema from the block's declared plan
+The planner derives the model response schema from the block's declared plan
 schema, grouping each step's operation-specific fields under `parameters`.
 Every step variant shares `id`, `instruction_lines` and `kind` before those
 parameters, including after canonical key sorting. Constrained generation can
@@ -169,10 +169,12 @@ command cannot resume. No replay can target a physical backend.
 ## Live operation view
 
 Each confirmed Chatterbox command publishes a fresh tracker observation and a
-transient operation label/resource before its animation delay. Aspiration and
+transient operation label and target before its animation delay. Aspiration and
 dispense have separate ticks, including every mix half-cycle and transfer chunk.
-The native canvas highlights that resource; current step and completed/total
-counts stay distinct. No in-progress operation counts as a completed step.
+The workcell highlights the target and moves the pipette for confirmed tip and
+liquid operations. Tip counts, attached-tip state and liquid fills reflect
+tracker observations. Current step and completed/total counts stay distinct.
+No in-progress operation counts as a completed step.
 One bounded monitor WebSocket per page uses the existing authenticated Job UI
 proxy. At most eight monitor viewers receive snapshots; slow/disconnected viewers
 cannot authorize or retry operations. Reconnect sends the current snapshot.
@@ -187,12 +189,12 @@ declared reserve. Success requires two adaptations, eleven final goals met and
 83 unused tips. This demonstrates volume
 bookkeeping only; no concentration or assay outcome is inferred.
 
-The live and replay pages show only the deck and an event stream beneath it.
+The live and replay pages show the 3D workcell and an event stream beneath it.
 The stream has compact status/progress, the current operation and newest-first
 confirmed steps and risk messages. Replay controls and well details appear only
-where applicable. Remove duplicate headings, mission prose, authoring toolbars,
-goal tables and report qualifications from this page; those details remain in
-the required report. Keep native volume tooltips, pan/zoom and fit-to-view.
+where applicable. Keep goal tables and report qualifications in the required
+report. The workcell supports orbit, pan, zoom, fit and well inspection. Well
+inspection and events remain accessible when WebGL is unavailable.
 
 ## Evidence and presentation
 
@@ -200,9 +202,9 @@ Preserve procedure bytes/hash, typed plan, initial inventory, source lines,
 decisions/reasons, pre/post states, check outcomes, final goals and limitations.
 Required artifacts are procedure, plan, trace, simulation, Markdown report and
 JSON review results and the memory audit. Optional static replay/UI publication cannot block required
-results. The replay provides all recorded states without a running service;
-it is an observed-state replay, not the live PyLabRobot canvas. No confidential
-input or unrestricted file-serving endpoint is exposed by the live page.
+results. The replay shows the recorded states in the workcell without a running
+service. Its frames correspond to saved steps. No confidential input or
+unrestricted file-serving endpoint is exposed by the live page.
 
 ## Limits and acceptance
 

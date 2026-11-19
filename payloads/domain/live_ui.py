@@ -1,4 +1,4 @@
-"""One phase-owned PyLabRobot page, published through the runtime UI contract."""
+"""One phase-owned lab page, published through the runtime UI contract."""
 
 import asyncio
 import json
@@ -10,9 +10,9 @@ from .visualizer import LabVisualizer
 
 
 class LiveLabUi:
-    def __init__(self, block, resource, projection):
+    def __init__(self, block, projection):
         self.block = block
-        self.visualizer = LabVisualizer(resource, projection)
+        self.visualizer = LabVisualizer(projection)
         self.generation = uuid4().hex
         self.claimed = False
 

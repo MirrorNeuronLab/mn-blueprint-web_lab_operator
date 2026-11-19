@@ -1,7 +1,10 @@
 (() => {
   'use strict';
   const byId = id => document.getElementById(id);
-  const text = (id, value) => { byId(id).textContent = value; };
+  const text = (id, value) => {
+    const node = byId(id);
+    if (node.textContent !== value) node.textContent = value;
+  };
   const replayNode = byId('replay-data');
   const replay = replayNode ? JSON.parse(replayNode.textContent) : null;
   let index = 0;
@@ -9,20 +12,56 @@
   let currentView = null;
   const labels = {preparing:'Preparing',planning:'Planning',transitioning:'Preparing next phase',running:'Running',completed:'Completed',needs_review:'Needs review',failed:'Failed',cancelled:'Stopped'};
   const terminal = ['completed', 'needs_review', 'failed', 'cancelled'];
+  const plate = byId('plate');
+  const well = byId('well');
+  let visiblePlates = [];
+  const deck = mountDeck(selectWell, describeWell);
+
+  well.replaceChildren(...wellNames.map(name => new Option(name)));
+  plate.addEventListener('change', updateSelection);
+  well.addEventListener('change', updateSelection);
+
+  function describeWell(address) {
+    const {volume_ul, liquids} = currentView.state.wells[address];
+    return `${address}: ${volume_ul} µL · ${volume_ul > 0 ? liquids.join(', ') : 'empty'}`;
+  }
+
+  function updateSelection() {
+    if (!plate.value) return;
+    plate.title = plate.value;
+    const address = `${plate.value}/${well.value}`;
+    text('well-detail', describeWell(address));
+    deck?.select(address);
+  }
+
+  function selectWell(address) {
+    [plate.value, well.value] = address.split('/');
+    updateSelection();
+  }
 
   function renderState(view) {
     currentView = view;
     text('status', labels[view.status] || 'Preparing');
     byId('reason').hidden = !terminal.includes(view.status) || !view.reason;
     text('reason', view.reason || '');
-    byId('status').title = view.state.tips_remaining === null ? '' : `${view.state.tips_remaining} unused tips`;
+    byId('tip-count').hidden = view.state.tips_remaining === null;
+    text('tip-count', view.state.tips_remaining === null ? '' : `${view.state.tips_remaining} unused tips`);
     text('progress', ['preparing', 'planning', 'transitioning'].includes(view.status) ? '' :
       `${view.steps_completed} / ${view.steps_total ?? replay?.result.steps_total ?? 0}`);
     byId('operation').hidden = !view.operation;
     text('current-step', view.current_step?.replaceAll('_', ' ') || '');
     byId('current-step').title = byId('current-step').textContent;
     text('operation-label', view.operation?.label || '');
-    byId('visualizer')?.contentWindow.postMessage({type:'web-lab-operation', operation:view.operation, status:view.status}, location.origin);
+    if (view.plates.length !== visiblePlates.length
+        || view.plates.some((name, i) => name !== visiblePlates[i])) {
+      const selectedPlate = plate.value;
+      visiblePlates = view.plates;
+      plate.replaceChildren(...visiblePlates.map(name => new Option(name)));
+      if (visiblePlates.includes(selectedPlate)) plate.value = selectedPlate;
+    }
+    byId('well-inspector').hidden = visiblePlates.length === 0;
+    deck?.show(view);
+    updateSelection();
     const events = byId('events');
     events.replaceChildren();
     byId('empty').hidden = view.events.length > 0 || Boolean(view.operation) || terminal.includes(view.status);
@@ -37,66 +76,47 @@
       reason.className = 'reason'; reason.textContent = event.reason;
       row.append(name, reason); events.append(row);
     }
-    if (replay) renderDeck(view.state);
-  }
-
-  function renderDeck(state) {
-    const deck = byId('deck'); deck.replaceChildren();
-    const plates = [...new Set(Object.keys(state.wells).map(key => key.split('/')[0]))];
-    for (const plate of plates) {
-      const section = document.createElement('section'); section.className = 'plate';
-      const title = document.createElement('h3'); title.textContent = plate; title.title = plate;
-      const wells = document.createElement('div'); wells.className = 'wells';
-      for (const [address, value] of Object.entries(state.wells).filter(([key]) => key.startsWith(plate + '/'))) {
-        const button = document.createElement('button'); button.type = 'button'; button.className = 'well';
-        button.style.setProperty('--fill', `${Math.max(0, Math.min(100, value.volume_ul / 360 * 100))}%`);
-        button.textContent = address.split('/')[1];
-        button.title = `${address}: ${value.volume_ul} uL; ${value.liquids.join(', ') || 'empty'}`;
-        button.setAttribute('aria-label', button.title);
-        button.addEventListener('click', () => { text('well-detail', button.title); byId('well-detail').hidden = false; });
-        wells.append(button);
-      }
-      section.append(title, wells); deck.append(section);
-    }
   }
 
   function frame() {
-    byId('well-detail').hidden = true;
-    const events = replay.trace.events.slice(0, index);
-    const last = events.at(-1);
-    renderState({status: index === replay.trace.events.length ? replay.result.status : 'running',
-      reason: index === replay.trace.events.length ? replay.result.reason : '',
-      steps_completed: events.filter(event => event.outcome.passed).length,
-      state: last ? last.after : replay.trace.initial,
-      events: events.flatMap(event => event.rows)});
+    const frames = replay.frames.slice(0, index);
+    const last = frames.at(-1);
+    const done = index === replay.frames.length;
+    renderState({status: done ? replay.result.status : 'running',
+      reason: done ? replay.result.reason : '',
+      steps_completed: frames.filter(value => value.passed).length,
+      plates: replay.plates, well_capacity_ul: replay.well_capacity_ul,
+      state: last ? last.after : replay.initial,
+      events: frames.flatMap(value => value.rows)});
     byId('frame').value = String(index);
-    text('position', `${index} / ${replay.trace.events.length}`);
+    text('position', `${index} / ${replay.frames.length}`);
     byId('previous').disabled = index === 0;
-    byId('next').disabled = index === replay.trace.events.length;
+    byId('next').disabled = done;
   }
 
   function pause() { if (timer) clearInterval(timer); timer = null; text('play', 'Play'); }
   if (replay) {
-    byId('visualizer')?.remove();
-    byId('deck').hidden = false; byId('replay').hidden = false;
-    byId('frame').max = String(replay.trace.events.length);
-    byId('play').disabled = replay.trace.events.length === 0;
+    byId('saved-assessment').hidden = false;
+    text('assessment-outcome', replay.result.summary || 'The simulation ended without a saved summary.');
+    text('assessment-evidence', `${replay.frames.length} recorded events in trace.json. Compare the replay with the saved plan and report.md. Values come from simulation bookkeeping.`);
+    byId('replay').hidden = false;
+    byId('frame').max = String(replay.frames.length);
+    byId('play').disabled = replay.frames.length === 0;
     byId('previous').onclick = () => { pause(); index = Math.max(0, index - 1); frame(); };
-    byId('next').onclick = () => { pause(); index = Math.min(replay.trace.events.length, index + 1); frame(); };
+    byId('next').onclick = () => { pause(); index = Math.min(replay.frames.length, index + 1); frame(); };
     byId('frame').oninput = event => { pause(); index = Number(event.target.value); frame(); };
     byId('play').onclick = () => {
       if (timer) { pause(); return; }
-      if (index === replay.trace.events.length) index = 0;
+      if (index === replay.frames.length) index = 0;
       text('play', 'Pause'); frame();
-      timer = setInterval(() => { index = Math.min(index + 1, replay.trace.events.length); frame();
-        if (index === replay.trace.events.length) pause(); }, 850);
+      timer = setInterval(() => {
+        index++;
+        frame();
+        if (index === replay.frames.length) pause();
+      }, 850);
     };
     frame();
   } else {
-    byId('visualizer').addEventListener('load', () => {
-      if (currentView) byId('visualizer').contentWindow.postMessage(
-        {type:'web-lab-operation', operation:currentView.operation, status:currentView.status}, location.origin);
-    });
     function connect() {
       const url = new URL(window.__MN_JOB_UI_PROXY_BASE__ ? 'ws/monitor/ws' : 'monitor/ws', location.href);
       url.protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -106,7 +126,7 @@
         byId('connection').hidden = true;
       };
       socket.onclose = () => {
-        if (currentView && ['transitioning', 'completed', 'needs_review', 'failed', 'cancelled'].includes(currentView.status)) return;
+        if (currentView && (currentView.status === 'transitioning' || terminal.includes(currentView.status))) return;
         byId('connection').hidden = false;
         setTimeout(connect, 1000);
       };

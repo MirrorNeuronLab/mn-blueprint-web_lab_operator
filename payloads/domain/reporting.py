@@ -21,7 +21,7 @@ LIMITATIONS = [
 def publish(block, inputs):
     value = block.read_checkpoint(inputs['simulation']['simulation'], expected_path='simulation-checkpoint.json')
     trace = block.read_evidence(value['trace'])
-    block.read_evidence(value['plan'])
+    plan = block.read_evidence(value['plan'])
     memory = block.read_evidence(value['memory'])
     final = {key: value[key] for key in ['status', 'simulation_only', 'procedure_sha256', 'summary',
                                         'reason', 'steps_completed', 'steps_total', 'adaptations', 'goals',
@@ -68,7 +68,7 @@ def publish(block, inputs):
 
     def page():
         from .presentation import render
-        return render(final, trace).encode()
+        return render(final, trace, plan['plates']).encode()
 
     def handle():
         from mn_sdk_web_ui import static_run_report_handle

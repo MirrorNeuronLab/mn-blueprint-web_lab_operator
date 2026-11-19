@@ -1,4 +1,4 @@
-"""An empty native deck while the bounded intake or model phase is working."""
+"""An empty 3D workcell while the bounded intake or model phase is working."""
 
 import asyncio
 from concurrent.futures import Future
@@ -45,16 +45,15 @@ class PlanningUi:
             self.finished.set_result(None)
 
     async def _serve(self):
-        from pylabrobot.resources.hamilton import STARLetDeck
-
         projection = {
             'status': self.phase,
             'summary': 'Preparing the lab procedure.' if self.phase == 'preparing' else 'Planning the simulated procedure.',
             'reason': 'The deck will populate after the procedure is validated.',
             'state': {'wells': {}, 'tips_remaining': None},
+            'plates': [],
             'current_step': '', 'steps_completed': 0, 'events': [],
         }
-        ui = LiveLabUi(self.block, STARLetDeck(), lambda: projection)
+        ui = LiveLabUi(self.block, lambda: projection)
         status = 'failed'
         try:
             await ui.start()
@@ -69,7 +68,7 @@ class PlanningUi:
 
 @contextmanager
 def planning_view(block, phase):
-    """Keep the native deck's lifetime inside the domain work that uses it."""
+    """Keep the deck's lifetime inside the domain work that uses it."""
     view = PlanningUi(block, phase)
     status, failure = 'failed', None
     try:

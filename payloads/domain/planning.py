@@ -1,4 +1,4 @@
-"""Plan the simulated procedure while its empty native deck is visible."""
+"""Plan the simulated procedure while the workcell is empty."""
 
 import json
 from pathlib import Path

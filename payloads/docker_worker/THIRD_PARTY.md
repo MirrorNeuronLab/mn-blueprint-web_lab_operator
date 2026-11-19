@@ -1,25 +1,34 @@
-# Visualizer dependencies
+# Simulation and viewer dependencies
 
-The image installs [PyLabRobot 0.2.1](https://github.com/PyLabRobot/pylabrobot)
-under its MIT license. The blueprint serves its packaged visualizer with local
-asset URLs, a same-origin WebSocket, and a small workspace layout that fits the
-deck and collapses the native inspector when the pane is narrow.
+The worker installs [PyLabRobot 0.2.1](https://github.com/PyLabRobot/pylabrobot)
+under its MIT license. The 3D workcell uses the Chatterbox simulation's tracked
+state.
 
-At image build, `prepare_visualizer.py` downloads the visualizer's dependencies
-at the versions and SHA-256 hashes in `visualizer-assets.json`. Their distributed
-license comments remain intact. Bootstrap 5.1.3, Bootstrap Icons 1.8.3,
-Konva 8.4.3, JSZip 3.7.1 and html2canvas 1.4.1 use MIT licenses; JSZip is dual
-MIT/GPLv3 and this image uses its MIT grant. Bootstrap Icons fonts use MIT.
-Sources: [Bootstrap](https://github.com/twbs/bootstrap),
-[Bootstrap Icons](https://github.com/twbs/icons),
-[Konva](https://github.com/konvajs/konva),
-[JSZip](https://github.com/Stuk/jszip),
-[html2canvas](https://github.com/niklasvh/html2canvas).
+`web_assets/vendor/three.min.js` bundles the WebGL renderer and OrbitControls
+from [Three.js r186](https://github.com/mrdoob/three.js/releases/tag/r186).
+`web_assets/vendor/three.LICENSE.txt` carries the MIT license from the npm
+distribution. The live page serves the bundle on the Job UI origin. The
+standalone replay embeds the same bundle and license.
 
-The browser loads these assets from the blueprint listener. It does not contact
-CDNs. No dependency download occurs during a simulated procedure.
+To reproduce the bundle, run these commands in an empty temporary directory.
 
-The PyLabRobot wheel omits its visualizer PNGs. The same build inventory fetches
-the logo and three tool images from upstream commit
-`4d4a83086ed26775afffe6d73356cc85ec5af93d`, each with its own SHA-256 check.
-They retain PyLabRobot's MIT license.
+```sh
+npm install --save-exact three@0.186.0 esbuild@0.25.12
+cat > three.entry.js <<'EOF'
+export {
+  BoxGeometry, CircleGeometry, CylinderGeometry, DirectionalLight, Group, HemisphereLight,
+  InstancedMesh, LatheGeometry, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D,
+  OrthographicCamera, Raycaster, Scene, TorusGeometry, Vector2, Vector3, WebGLRenderer
+} from 'three';
+export {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+EOF
+./node_modules/.bin/esbuild three.entry.js \
+  --bundle --minify --format=iife --global-name=LabThree --legal-comments=inline \
+  '--banner:js=/*! Three.js r186 and OrbitControls | MIT | see three.LICENSE.txt */' \
+  --outfile=three.min.js
+```
+
+Copy the bundle into `web_assets/vendor/` and save `node_modules/three/LICENSE`
+there as `three.LICENSE.txt`.
+The SHA-256 of the pinned bundle is
+`8a4e07634ae83fc13924a8e383f67fcc97e89d0207fcd9357c248e1e7c2e7ea1`.

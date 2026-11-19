@@ -3,8 +3,8 @@
 Turn a Markdown lab procedure into a supervised **PyLabRobot simulation**. The
 co-worker plans typed steps, observes the tracked deck before each step and can
 switch to an explicitly allowed source well when the primary source is short.
-Watch the native PyLabRobot visualizer during the run; review a self-contained
-deck replay, decisions and final volume checks afterwards. Membrane retains
+Watch the 3D workcell during the run and review a self-contained
+3D replay, decisions and final volume checks afterwards. Membrane retains
 job-private experience so later decisions can consider what worked and failed.
 
 This blueprint controls simulated liquid handling only. It never constructs a
@@ -69,19 +69,26 @@ not duplicate an already published notice. Delivery failure stops the phase
 visibly, preserving confirmed steps for resume. Warnings never authorize an
 undeclared source or change the procedure.
 
-Open **Web lab** as soon as the run starts. The native deck is empty during
+Open **Web lab** as soon as the run starts. The 3D workcell is empty during
 intake and planning. Once the plan is validated, the simulation worker supplies
-the plates, starting volumes and live tip state. The current operation names
-each confirmed tip pickup, aspiration, dispense, mix half-cycle, virtual wait
-and volume check, highlighting its resource on the native deck. A pushed
-snapshot follows every command before the configured animation delay; a mix
-therefore stays visible even though its net volume is unchanged. Reconnecting
-viewers receive the current snapshot, not a replay of missed operations.
+the plates, starting volumes and live tip state. Watch the pipette move between
+the tip rack, wells and waste chute as PyLabRobot confirms operations. A pushed
+snapshot follows every command before the configured animation delay, so both
+halves of a mix stay visible. Reconnecting viewers receive the current snapshot.
+Rotate or zoom the deck and use **Fit deck** to reset the view. Hover over or
+select a well to inspect its tracked volume and liquid labels.
+
+The original workcell geometry follows the Hamilton-style gantry and pipette
+assembly illustrated by [3D Lab Views](https://michaelraspuzzi.github.io/labautomationin3d/#hamilton).
+PyLabRobot supplies the simulated state. Equipment positions and movement in the
+viewer are illustrative.
+
 Live operation highlights are transient; saved step evidence retains its existing
 authority. The page contains the simulation and a compact event stream below it,
 with the latest event first. Risk messages remain in the stream and saved trace;
-full goals and qualifications stay in the report. The replay adds observation
-controls. Each phase owns its listener
+full goals and qualifications stay in the report. The replay uses the same 3D
+workcell and adds controls for stepping through recorded observations offline.
+Each phase owns its listener
 and closes it on completion, cancellation or failure. The desktop follows the
 new page automatically, including in a detached window. The
 optional saved replay then becomes the run's web result. The Web UI descriptor
@@ -220,8 +227,8 @@ a desktop build that follows changes to the runtime UI claim. Domain policy, the
 PyLabRobot integration and selected presentation live under `payloads/domain/`.
 
 The Python 3.12 Docker image installs pinned PyLabRobot and WebSocket versions.
-Its build downloads hash-checked visualizer dependencies and serves them locally;
-the browser does not use CDNs. Planning and adaptive decisions send the procedure
+The viewer uses a bundled, MIT-licensed Three.js build and serves its scripts
+through the Job UI proxy. Planning and adaptive decisions send the procedure
 and selected simulation state and recalled experience to the configured model route.
 Selected simulation experience persists in the authenticated job-private Membrane service.
 No robot address,
@@ -250,17 +257,16 @@ contact a provider. PyLabRobot tracker tests use its real Chatterbox backend.
 Live model, Docker build, cross-node UI proxy and Core pause/resume acceptance
 are separate opt-in checks; offline tests do not qualify those integrations.
 
-For a real Chromium check through the local Job UI proxy, build the pinned
-visualizer assets with `payloads/docker_worker/prepare_visualizer.py`, then run:
+For a Chromium check of the bundled 3D viewer through the local Job UI proxy, run:
 
 ```bash
-WEB_LAB_VISUALIZER_VENDOR=/path/to/visualizer-vendor python tests/e2e/web-lab-operations.py
+python tests/e2e/web-lab-operations.py
 ```
 
 This opt-in check uses the desktop checkout's Playwright installation (override
 with `OTTERDESK_APP_ROOT`), the sibling API proxy and real Chatterbox trackers.
-It verifies intermediate volumes, live resource highlights, reconnect,
-wide/narrow resizing and normal listener cleanup without model calls. Screenshots go to
+It checks live tip and well changes, camera controls, reconnect, wide/narrow
+resizing, normal listener cleanup and offline replay without model calls. Screenshots go to
 `/private/tmp/web-lab-live-operations` or `WEB_LAB_E2E_OUTPUT`.
 
 Reference: [PyLabRobot](https://github.com/PyLabRobot/pylabrobot) and its

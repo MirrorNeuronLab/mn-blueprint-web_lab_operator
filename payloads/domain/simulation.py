@@ -11,7 +11,7 @@ from .decisions import choose
 from .lab import SimulatedLab
 from .live_ui import LiveLabUi
 from .memory import LabMemory, stamp
-from .protocol import action_for, goal_results, initial_state, number, validate_plan
+from .protocol import WELL_CAPACITY, action_for, goal_results, initial_state, number, validate_plan
 from .supervision import event_rows, outcome_notice, publish_notice, risks_for
 
 
@@ -41,6 +41,7 @@ async def execute(block, plan, procedure, policy, memory):
     trace, status, reason = [], 'running', ''
     state = initial_state(plan)
     projection = {'status': status, 'summary': plan['summary'], 'state': state,
+                  'plates': plan['plates'], 'well_capacity_ul': WELL_CAPACITY, 'tip_attached': False,
                   'current_step': '', 'operation': None, 'reason': '',
                   'steps_completed': 0, 'steps_total': len(plan['steps']), 'events': []}
     deadline = block.monotonic() + policy['max_duration_seconds']
@@ -49,20 +50,20 @@ async def execute(block, plan, procedure, policy, memory):
 
     async def tick(operation):
         check()
-        projection.update(state=lab.observe(), operation=operation)
+        projection.update(state=lab.observe(), tip_attached=lab.tip_attached, operation=operation)
         await ui.publish()
         await asyncio.sleep(policy['action_delay_seconds'])
 
     try:
         await lab.setup()
-        ui = LiveLabUi(block, lab.lh, lambda: projection)
-        await ui.start()
         state = lab.observe()
         projection['state'] = state
+        ui = LiveLabUi(block, lambda: projection)
+        await ui.start()
         for index, step in enumerate(plan['steps']):
             check()
             projection['current_step'] = step['id']
-            projection['operation'] = {'label': 'Reviewing the next step', 'resource': ''}
+            projection['operation'] = {'label': 'Reviewing the next step'}
             risks = risks_for(step, state)
             projection['events'] = event_rows(trace) + [
                 {'step': step['id'], 'decision': 'warning', 'reason': risk['message']} for risk in risks]
@@ -114,7 +115,7 @@ async def execute(block, plan, procedure, policy, memory):
             trace.append(event)
             state = event['after']
             projection.update(state=state, steps_completed=sum(e['outcome']['passed'] for e in trace),
-                              operation=None,
+                              operation=None, tip_attached=lab.tip_attached,
                               reason=event['error'] or ('The volume check did not pass.'
                                      if event['action'] is not None and not event['outcome']['passed'] else event['decision']['reason']),
                               events=event_rows(trace))
@@ -145,6 +146,7 @@ async def execute(block, plan, procedure, policy, memory):
         status = 'cancelled' if getattr(error, 'code', '') == 'cancelled' else 'failed'
         projection.update(status=status, state=lab.observe(), operation=None)
         if ui is not None:
+            projection['tip_attached'] = lab.tip_attached
             await ui.publish()
         # Failure observations are qualified; they do not become successful steps.
         interruption = {

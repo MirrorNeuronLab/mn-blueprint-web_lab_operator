@@ -8,12 +8,12 @@
   ],
   "setup_guide": {
     "schema": "otterdesk.setup_guide.v1",
-    "introduction": "I'll turn your Markdown lab procedure into a PyLabRobot simulation and explain each tracked operation. Start with the included synthetic dilution series, then provide your own procedure. This co-worker operates simulated liquid handling only.",
+    "introduction": "Try the included dilution-series sample to watch a simulated procedure and see how its checks are recorded. You can also bring your own Markdown procedure.",
     "sample": {
       "available": true,
       "title": "Synthetic dilution series with two shortage recoveries",
-      "description": "Watch a 20-step dilution series with mixing, readout aliquots, a blank control and two reserve-source recoveries.",
-      "expected_output": "Live simulation, Chat risk notices, seven volume checks, eleven final goals and a saved replay.",
+      "description": "Run the bundled dilution series and see how the simulation handles two supply shortages.",
+      "expected_output": "A simulated deck, volume checks and a replay of the procedure.",
       "values": {
         "inputs.payload.procedure_markdown": "",
         "inputs.payload.procedure_file": "@/examples/sample_inputs/procedure.md"
@@ -21,7 +21,7 @@
     },
     "real": {
       "available": true,
-      "introduction": "Supply your own Markdown procedure for simulation. Physical lab equipment is outside this blueprint.",
+      "introduction": "Use your own Markdown procedure in the simulator.",
       "values": {
         "inputs.payload.procedure_markdown": "",
         "inputs.payload.procedure_file": ""
@@ -63,12 +63,17 @@
         "description": "Managed in Memory. Changes Chat wording; revise the Markdown and start a new run to change the procedure."
       }
     ],
-    "prompt_file": "@/payloads/prompts/setup.md"
+    "prompt_file": "@/payloads/prompts/setup.md",
+    "run_guidance": {
+      "on_start": "I’ll turn the procedure into a simulation plan so you can follow the steps and see how exceptions are handled.",
+      "web_ui_ready": "Open Web lab to see the current phase. As simulated steps appear, compare a movement on the deck with its entry in the event stream.",
+      "output_ready": "Open report.md in the output folder to review the simulation checks and any steps that need attention."
+    }
   },
   "web_ui": {
     "enabled": true,
     "adapter": "static_html",
     "title": "Web lab",
-    "description": "Open the empty PyLabRobot deck during planning, watch the simulation, then review the saved replay."
+    "description": "Watch the simulated equipment operate in 3D, then review the saved replay."
   }
 }

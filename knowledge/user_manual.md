@@ -9,13 +9,14 @@ a declared reserve source can resolve an insufficient primary source in an
 blank control. The blank encounters a second source shortage after earlier work.
 
 Provide pasted Markdown or a .md file, clearing the other input. Start a run
-explicitly. Open Web lab as soon as the run starts. The native PyLabRobot deck
-is empty while the procedure is prepared and planned; the validated simulation
-then shows its plates, tips and recorded decisions. During execution, Web lab
-names each confirmed operation and highlights its tip or well. Aspirations and
-dispenses remain separately visible during mixing. Completed-step counts and
-the saved replay use whole-step observations. Use the co-worker's existing controls to pause, resume
-or stop. Chat questions read context; they do not start work or edit a procedure.
+explicitly. Open Web lab as soon as the run starts. The 3D workcell is empty
+while the procedure is prepared and planned. Once the plan is validated, the
+scene shows its plates and tip rack. During execution, Web lab names each
+confirmed operation and highlights its target. Aspirations and dispenses remain
+separately visible during mixing. Rotate or zoom the deck and select a well to
+see its tracked volume. Completed-step counts and the saved replay use
+whole-step observations. Use the co-worker's existing controls to pause, resume
+or stop. Chat questions read context and leave the procedure untouched.
 
 Chat reports tracked shortages and predicted volume/tip violations before the
 next operation, confirms successful reserve transfers, and explains stopped
