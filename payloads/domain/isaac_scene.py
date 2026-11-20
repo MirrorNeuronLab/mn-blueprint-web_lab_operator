@@ -10,6 +10,7 @@ import traceback
 from pathlib import Path
 from threading import Event
 
+from .dilution_scene import StageDilution
 from .equipment import Equipment, Joint
 from .workspace import CAMERAS, LiveFrames, Workspace
 
@@ -81,7 +82,9 @@ def render(app, stage_path, work, host, port, stopping):
     if not context.open_stage(str(stage_path)):
         raise RuntimeError("Isaac Sim couldn't open the Web Lab stage.")
     rig = StageEquipment(context.get_stage())
+    dilution = StageDilution(context.get_stage())
     equipment = Equipment(rig.joints, light_on=rig.observe()[1])
+    dilution.apply(equipment.sample.observe().pose)
     frames = LiveFrames(rig.joints)
     app.reset_render_settings()
     rep.orchestrator.set_capture_on_play(False)
@@ -119,6 +122,7 @@ def render(app, stage_path, work, host, port, stopping):
                 equipment.apply(*command)
             equipment.advance(min(.2, tick - last_tick))
             rig.apply(equipment.position, equipment.light_on)
+            dilution.apply(equipment.sample.observe().pose)
             rep.orchestrator.step(rt_subframes=1, delta_time=0.0, pause_timeline=True)
             observed, light_on = rig.observe()
             images = {}

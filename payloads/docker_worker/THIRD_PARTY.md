@@ -8,3 +8,7 @@ OpenUSD and rendering libraries used by the simulation process.
 
 The original USD model takes visual cues from Michael Raspuzzi's Andrew+
 illustration. [3D Lab Views](https://michaelraspuzzi.github.io/labautomationin3d/#andrew-plus)
+
+The workcell also includes Open Lab Automata's MK3 frame mesh and QUIKTECH's
+Erlenmeyer flask mesh. Their license and source details ship with the assets.
+[OpenUSD asset notices](../isaac/assets/vendor/NOTICE.txt)

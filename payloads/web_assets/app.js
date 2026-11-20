@@ -8,6 +8,8 @@
   const preview = byId('frame');
   const cameraButtons = [...document.querySelectorAll('[data-camera]')];
   const readings = [...document.querySelectorAll('[data-reading]')];
+  const sampleControl = byId('sample-control');
+  const wells = byId('sample-wells');
   const clock = new Intl.DateTimeFormat(undefined, {hour: 'numeric', minute: '2-digit', second: '2-digit'});
   let camera = 'overview';
   let socket;
@@ -53,6 +55,7 @@
     byId('home').disabled = busy;
     byId('lid').disabled = busy;
     byId('light').disabled = busy;
+    sampleControl.disabled = busy || !current?.sample;
     for (const button of cameraButtons) button.disabled = !live;
     if (live) {
       badge('connection', 'live', 'Live');
@@ -63,14 +66,45 @@
     }
   }
 
+  function renderSample(sample) {
+    const labels = {running: 'Running', complete: 'Complete', stopped: 'Stopped'};
+    badge('sample-status', sample.status, labels[sample.status]);
+    write(byId('sample-action'), sample.action);
+    write(sampleControl, sample.status === 'running' ? 'Stop sample' : 'Run sample again');
+    const progress = byId('sample-progress');
+    progress.max = sample.total_transfers;
+    progress.value = sample.completed_transfers;
+    if (!wells.children.length) {
+      for (const well of sample.wells) {
+        const row = document.createElement('div');
+        const name = document.createElement('dt');
+        const concentration = document.createElement('dd');
+        name.textContent = well.name;
+        row.append(name, concentration);
+        wells.append(row);
+      }
+    }
+    sample.wells.forEach((well, index) => {
+      const row = wells.children[index];
+      const strength = well.concentration_percent + '%';
+      row.style.setProperty('--dye', strength);
+      write(row.lastElementChild, strength);
+    });
+    wells.hidden = false;
+  }
+
+  function feedback(message) {
+    write(byId(pending?.feedback ?? 'command-feedback'), message);
+  }
+
   function renderState(state, cameraId) {
     const newSession = !current || state.frame < current.frame;
     if (newSession || state.frame > current.frame || lastFrameAt === 0) lastFrameAt = performance.now();
     current = state;
     if (newSession) configureTarget();
     if (pending?.id && state.revision >= pending.id) {
+      feedback('');
       pending = undefined;
-      write(byId('command-feedback'), '');
     }
     for (const node of readings) {
       const axis = state.joints[node.dataset.reading];
@@ -85,6 +119,7 @@
     preview.alt = title + ' camera of the simulated workcell';
     write(byId('observed-at'), 'Observed ' + clock.format(new Date(state.observed_at)));
     for (const button of cameraButtons) button.setAttribute('aria-pressed', String(button.dataset.camera === cameraId));
+    if (state.sample) renderSample(state.sample);
 
     const recentId = state.recent_actions[0]?.id ?? 0;
     if (eventId !== recentId || newSession) {
@@ -104,11 +139,11 @@
     controls();
   }
 
-  function send(command) {
+  function send(command, feedbackId = 'command-feedback') {
     if (!online() || pending) return;
     socket.send(JSON.stringify({command, revision: current.revision}));
-    pending = {id: null, deadline: performance.now() + 5000};
-    write(byId('command-feedback'), 'Applying control…');
+    pending = {id: null, deadline: performance.now() + 5000, feedback: feedbackId};
+    feedback('Applying control…');
     controls();
   }
 
@@ -120,8 +155,8 @@
       } else if (message.type === 'accepted' && pending) {
         pending.id = message.id;
       } else if (message.type === 'rejected') {
+        feedback(message.message);
         pending = undefined;
-        write(byId('command-feedback'), message.message);
         controls();
       }
       return;
@@ -171,7 +206,7 @@
       clearTimeout(opening);
       lastFrameAt = 0;
       frameHeader = undefined;
-      if (pending) write(byId('command-feedback'), 'Connection interrupted. Check recent actions after reconnecting.');
+      if (pending) feedback('Connection interrupted. Check recent actions after reconnecting.');
       pending = undefined;
       controls();
       reconnect();
@@ -189,6 +224,9 @@
   byId('home').addEventListener('click', () => send({action: 'home'}));
   byId('lid').addEventListener('click', () => send({action: 'lid', enabled: current.joints.lid.target !== current.joints.lid.min}));
   byId('light').addEventListener('click', () => send({action: 'light', enabled: !current.inspection_light}));
+  sampleControl.addEventListener('click', () => send({
+    action: current.sample.status === 'running' ? 'stop_sample' : 'restart_sample',
+  }, 'sample-feedback'));
   for (const button of cameraButtons) button.addEventListener('click', () => {
     camera = button.dataset.camera;
     socket.send(JSON.stringify({camera}));

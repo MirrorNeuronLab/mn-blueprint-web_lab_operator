@@ -1,18 +1,18 @@
 {
   "$schema": "https://mirrorneuron.io/schemas/blueprint/v1/extensions/ui.schema.json",
   "starter_questions": [
+    "What does the dye dilution show?",
     "How do I move the arm?",
-    "What does Hold motion do?",
     "What computer can run Web lab?"
   ],
   "setup_guide": {
     "schema": "otterdesk.setup_guide.v1",
-    "introduction": "Start the simulated workcell to view the bench and control the arm and inspection station.",
+    "introduction": "Start a simulated dye dilution and watch the pipette work in Isaac Sim.",
     "sample": {
       "available": true,
-      "title": "Live lab workcell",
-      "description": "Open the Isaac Sim cameras and move the equipment from Web lab.",
-      "expected_output": "Live views and equipment readings, with the latest state saved when you stop.",
+      "title": "Dye dilution sample",
+      "description": "Watch three simulated transfers create a color gradient from food dye and water.",
+      "expected_output": "Live camera views and simulated dye concentrations, with the latest result saved alongside equipment readings.",
       "values": {}
     },
     "real": {
@@ -41,14 +41,14 @@
     "prompt_file": "@/payloads/prompts/setup.md",
     "run_guidance": {
       "on_start": "I’ll open the workcell in Isaac Sim and wait for both cameras.",
-      "web_ui_ready": "Open Web lab live to watch the bench and use the manual controls.",
-      "output_ready": "Open the output folder to see the latest observed equipment state."
+      "web_ui_ready": "Open Web lab live to follow the dye dilution and inspect the workcell.",
+      "output_ready": "Open the output folder to review the latest dye concentrations and equipment state."
     }
   },
   "web_ui": {
     "enabled": true,
     "adapter": "external-url",
     "title": "Web lab live",
-    "description": "Watch and control the running Isaac Sim workcell."
+    "description": "Follow the dye dilution and control the simulated equipment."
   }
 }

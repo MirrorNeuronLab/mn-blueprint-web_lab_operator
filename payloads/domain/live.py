@@ -19,6 +19,10 @@ from mn_sdk_web_ui import resolve_web_ui_binding
 
 PAYLOAD = Path(__file__).resolve().parents[1]
 STAGE = PAYLOAD / "isaac" / "assets" / "web_lab.usda"
+STAGE_LAYERS = (
+    "web_lab.usda", "andrew_plus.usda", "dilution_station.usda",
+    "vendor/mk3_frame.usdc", "vendor/erlenmeyer_flask.usdc",
+)
 ISAAC_PYTHON = Path("/isaac-sim/python.sh")
 STATE_PATH = "equipment_state.json"
 FRAME_TIMEOUT = 12
@@ -26,7 +30,7 @@ FRAME_TIMEOUT = 12
 
 def check_workcell(_block, _inputs):
     if not ISAAC_PYTHON.is_file() or not all(
-        STAGE.with_name(name).is_file() for name in (STAGE.name, "andrew_plus.usda")
+        (STAGE.parent / name).is_file() for name in STAGE_LAYERS
     ):
         raise RuntimeError("The OpenUSD workcell or Isaac Sim runtime is missing.")
     try:
@@ -66,13 +70,14 @@ class LabSession:
         self.state = {
             "schema_version": "mn.web_lab.state.v1", "status": "starting",
             "frame": 0, "revision": 0, "observed_at": None, "motion": None,
-            "joints": {}, "inspection_light": None, "recent_actions": [],
+            "joints": {}, "inspection_light": None, "sample": None, "recent_actions": [],
         }
         self.work = None
         self.process = None
         self.last_frame_at = None
         self.last_revision = 0
         self.last_published = 0
+        self.last_sample_status = None
         self.claimed = False
         self.failed = False
         self.startup_deadline = getattr(block, "deadline", None)
@@ -154,6 +159,11 @@ class LabSession:
             if event["id"] > self.last_revision:
                 report_activity(event["label"], kind="action")
                 self.last_revision = event["id"]
+        sample = self.state["sample"]
+        if sample and sample["status"] != self.last_sample_status:
+            if sample["status"] == "complete":
+                report_activity("Finished the dye dilution sample", kind="result")
+            self.last_sample_status = sample["status"]
         return {"frame": self.state["frame"]}
 
     def close(self):
@@ -193,7 +203,7 @@ def ready(block, _inputs):
             return False
         if not lab.claimed:
             lab.claim(port)
-            report_activity("The workcell is live and ready for manual control", kind="result")
+            report_activity("The workcell cameras are live", kind="result")
         return True
     except Exception:
         lab.failed = True

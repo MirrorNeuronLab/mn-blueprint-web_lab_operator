@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from math import isfinite
 
+from .dilution import DilutionSample
+
 
 @dataclass(frozen=True)
 class Joint:
@@ -42,7 +44,7 @@ def command_from_message(message, joints):
         return {"action": action, "joint": name, "target": float(target)}
     if action in ("lid", "light") and keys == {"action", "enabled"} and type(message["enabled"]) is bool:
         return message
-    if action in ("home", "hold") and keys == {"action"}:
+    if action in ("home", "hold", "stop_sample", "restart_sample") and keys == {"action"}:
         return message
     raise CommandError("Choose a workcell control.")
 
@@ -52,6 +54,7 @@ class Equipment:
 
     def __init__(self, joints, light_on=False):
         self.joints = joints
+        self.sample = DilutionSample()
         self.position = {name: joint.home for name, joint in joints.items()}
         self.target = self.position.copy()
         self.light_on = light_on
@@ -83,12 +86,18 @@ class Equipment:
         elif action == "light":
             self.light_on = command["enabled"]
             label = "Turned inspection light on" if self.light_on else "Turned inspection light off"
+        elif action == "stop_sample":
+            label = "Stopped dye dilution" if self.sample.stop() else "Dye dilution already complete"
+        elif action == "restart_sample":
+            self.sample.restart()
+            label = "Restarted dye dilution"
         else:
             raise ValueError("Invalid workcell command.")
         self.revision = revision
         self.events.appendleft({"id": revision, "label": label, "at": timestamp()})
 
     def advance(self, dt):
+        self.sample.advance(dt)
         for name, joint in self.joints.items():
             current, target = self.position[name], self.target[name]
             distance = joint.speed * dt
@@ -113,6 +122,7 @@ class Equipment:
             "motion": "held" if self.held else "moving" if moving else "ready",
             "joints": axes,
             "inspection_light": light_on,
+            "sample": self.sample.observe().snapshot(),
             "recent_actions": list(self.events),
         }
 

@@ -60,6 +60,11 @@ class LiveFrames:
                 raise CommandError("Waiting for a current Isaac Sim frame.")
             if self.pending or type(revision) is not int or revision != self.latest[0]["revision"]:
                 raise CommandError("The controls changed. Check the current state and try again.")
+            sample_running = self.latest[0]["sample"]["status"] == "running"
+            if command["action"] == "stop_sample" and not sample_running:
+                raise CommandError("The sample has already finished.")
+            if command["action"] == "restart_sample" and sample_running:
+                raise CommandError("Stop the current sample before running it again.")
             self.pending = revision + 1, command
             return self.pending[0]
 

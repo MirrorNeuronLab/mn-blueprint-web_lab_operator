@@ -1,7 +1,7 @@
 #usda 1.0
 (
     defaultPrim = "World"
-    doc = "Web Lab live Isaac Sim workcell. The reusable arm and bench fixtures are a relative OpenUSD reference."
+    doc = "Web Lab live Isaac Sim workcell with a dye dilution station and a manual inspection bench."
     endTimeCode = 120
     framesPerSecond = 30
     metersPerUnit = 1
@@ -431,6 +431,22 @@ def Xform "World" (
         uniform token[] xformOpOrder = ["xformOp:translate"]
     }
 
+    def Xform "DilutionStation" (
+        prepend references = @./dilution_station.usda@
+    )
+    {
+        double3 xformOp:translate = (1.18, -0.015, 0.85)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    def Xform "Flask" (
+        prepend references = @./vendor/erlenmeyer_flask.usdc@
+    )
+    {
+        double3 xformOp:translate = (-0.616, 0.314, 0.85)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
     def Scope "Lights"
     {
         def DomeLight "Ambient"
@@ -475,20 +491,20 @@ def Xform "World" (
         def Camera "Overview"
         {
             float2 clippingRange = (0.02, 20)
-            float focalLength = 38
+            float focalLength = 39
             float horizontalAperture = 36
             float verticalAperture = 22.5
-            matrix4d xformOp:transform = ( (0.8073911222578979, 0.5900165893423098, 0, 0), (-0.2110247884206652, 0.2887707631019629, 0.9338522287008384, -0), (0.5509883069277837, -0.7539839989538093, 0.35765907642680694, 0), (1.15, -1.53, 1.7899999999999998, 1) )
+            matrix4d xformOp:transform = ( (0.932966417, 0.359963421, 0, 0), (-0.129529323, 0.335718857, 0.933013935, 0), (0.335850888, -0.870470669, 0.359840237, 0), (1.39, -2.55, 2.04, 1) )
             uniform token[] xformOpOrder = ["xformOp:transform"]
         }
 
         def Camera "Deck"
         {
             float2 clippingRange = (0.02, 20)
-            float focalLength = 27
-            float horizontalAperture = 36
-            float verticalAperture = 22.5
-            matrix4d xformOp:transform = ( (1, 0, -0, 0), (0, 0.993103448275862, 0.11724137931034483, 0), (0, -0.11724137931034483, 0.993103448275862, 0), (0.025, -0.18, 2.3199999999999994, 1) )
+            float horizontalAperture = 26
+            token projection = "orthographic"
+            float verticalAperture = 16.25
+            matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 0.977478052, 0.211037102, 0), (0, -0.211037102, 0.977478052, 0), (0.404, -0.53, 3.24, 1) )
             uniform token[] xformOpOrder = ["xformOp:transform"]
         }
     }

@@ -36,50 +36,67 @@
         </div>
       </section>
 
-      <section aria-labelledby="equipment-title" class="panel equipment">
-        <div class="panel-heading">
-          <h2 id="equipment-title">Equipment</h2>
-          <span id="motion" class="status" data-state="waiting">Waiting</span>
-        </div>
-        <dl id="readings" class="readings" aria-label="Observed position">
-          <div><dt>Lift</dt><dd data-reading="lift">—</dd></div>
-          <div><dt>Shoulder</dt><dd data-reading="shoulder">—</dd></div>
-          <div><dt>Elbow</dt><dd data-reading="elbow">—</dd></div>
-          <div><dt>Wrist</dt><dd data-reading="wrist">—</dd></div>
-          <div><dt>Inspection lid</dt><dd data-reading="lid">—</dd></div>
-          <div><dt>Inspection light</dt><dd id="light-state">—</dd></div>
-        </dl>
+      <div class="workcell-controls">
+        <section class="panel" aria-labelledby="sample-title">
+          <div class="panel-heading">
+            <h2 id="sample-title">Dye dilution</h2>
+            <span id="sample-status" class="status" data-state="waiting">Waiting</span>
+          </div>
+          <div class="sample-body">
+            <p class="sample-purpose">Watch one stock dye become three weaker samples.</p>
+            <p id="sample-action" role="status">Waiting for Isaac Sim</p>
+            <progress id="sample-progress" value="0" max="3" aria-label="Transfers completed"></progress>
+            <dl id="sample-wells" aria-label="Relative dye concentration" hidden></dl>
+            <button id="sample-control" type="button" disabled>Stop sample</button>
+            <p id="sample-feedback" class="feedback" role="status"></p>
+          </div>
+        </section>
 
-        <form id="move-form" autocomplete="off">
-          <fieldset id="position-controls" disabled>
-            <legend>Move a joint</legend>
-            <div class="joint-fields">
-              <div>
-                <label for="joint">Joint</label>
-                <select id="joint">
-                  <option value="lift">Lift</option>
-                  <option value="shoulder">Shoulder</option>
-                  <option value="elbow">Elbow</option>
-                  <option value="wrist">Wrist</option>
-                </select>
+        <section aria-labelledby="equipment-title" class="panel equipment">
+          <div class="panel-heading">
+            <h2 id="equipment-title">Equipment</h2>
+            <span id="motion" class="status" data-state="waiting">Waiting</span>
+          </div>
+          <dl id="readings" class="readings" aria-label="Observed position">
+            <div><dt>Lift</dt><dd data-reading="lift">—</dd></div>
+            <div><dt>Shoulder</dt><dd data-reading="shoulder">—</dd></div>
+            <div><dt>Elbow</dt><dd data-reading="elbow">—</dd></div>
+            <div><dt>Wrist</dt><dd data-reading="wrist">—</dd></div>
+            <div><dt>Inspection lid</dt><dd data-reading="lid">—</dd></div>
+            <div><dt>Inspection light</dt><dd id="light-state">—</dd></div>
+          </dl>
+
+          <form id="move-form" autocomplete="off">
+            <fieldset id="position-controls" disabled>
+              <legend>Move a joint</legend>
+              <div class="joint-fields">
+                <div>
+                  <label for="joint">Joint</label>
+                  <select id="joint">
+                    <option value="lift">Lift</option>
+                    <option value="shoulder">Shoulder</option>
+                    <option value="elbow">Elbow</option>
+                    <option value="wrist">Wrist</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="target">Target <span id="unit"></span></label>
+                  <input id="target" type="number" step="1" required>
+                </div>
               </div>
-              <div>
-                <label for="target">Target <span id="unit"></span></label>
-                <input id="target" type="number" step="1" required>
-              </div>
-            </div>
-            <input id="range" type="range" step="1" aria-label="Adjust joint target">
-            <button class="primary" type="submit">Move joint</button>
-          </fieldset>
-        </form>
-        <div class="actions" aria-label="Workcell controls">
-          <button id="hold" type="button" disabled>Hold motion</button>
-          <button id="home" type="button" disabled>Home arm</button>
-          <button id="lid" type="button" disabled>Open lid</button>
-          <button id="light" type="button" disabled>Turn light on</button>
-        </div>
-        <p id="command-feedback" class="feedback" role="status"></p>
-      </section>
+              <input id="range" type="range" step="1" aria-label="Adjust joint target">
+              <button class="primary" type="submit">Move joint</button>
+            </fieldset>
+          </form>
+          <div class="actions" aria-label="Workcell controls">
+            <button id="hold" type="button" disabled>Hold motion</button>
+            <button id="home" type="button" disabled>Home arm</button>
+            <button id="lid" type="button" disabled>Open lid</button>
+            <button id="light" type="button" disabled>Turn light on</button>
+          </div>
+          <p id="command-feedback" class="feedback" role="status"></p>
+        </section>
+      </div>
     </div>
 
     <section class="panel activity" aria-labelledby="activity-title">

@@ -1,0 +1,525 @@
+#usda 1.0
+(
+    defaultPrim = "DilutionStation"
+    doc = "Simulated dye dilution station with a staged pipette and four open vessels. Measurements are illustrative."
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "DilutionStation" (
+    kind = "group"
+)
+{
+    def Scope "Looks"
+    {
+        def Material "Steel"
+        {
+            token outputs:surface.connect = </DilutionStation/Looks/Steel/Preview.outputs:surface>
+
+            def Shader "Preview"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.36, 0.46, 0.54)
+                float inputs:metallic = 0.64
+                float inputs:roughness = 0.36
+                token outputs:surface
+            }
+        }
+
+        def Material "Slate"
+        {
+            token outputs:surface.connect = </DilutionStation/Looks/Slate/Preview.outputs:surface>
+
+            def Shader "Preview"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.048, 0.074, 0.095)
+                float inputs:metallic = 0.15
+                float inputs:roughness = 0.48
+                token outputs:surface
+            }
+        }
+
+        def Material "Worktop"
+        {
+            token outputs:surface.connect = </DilutionStation/Looks/Worktop/Preview.outputs:surface>
+
+            def Shader "Preview"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.17, 0.23, 0.27)
+                float inputs:metallic = 0.13
+                float inputs:roughness = 0.57
+                token outputs:surface
+            }
+        }
+
+        def Material "Cabinet"
+        {
+            token outputs:surface.connect = </DilutionStation/Looks/Cabinet/Preview.outputs:surface>
+
+            def Shader "Preview"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.32, 0.4, 0.44)
+                float inputs:metallic = 0.14
+                float inputs:roughness = 0.48
+                token outputs:surface
+            }
+        }
+
+        def Material "Porcelain"
+        {
+            token outputs:surface.connect = </DilutionStation/Looks/Porcelain/Preview.outputs:surface>
+
+            def Shader "Preview"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.74, 0.82, 0.86)
+                float inputs:metallic = 0
+                float inputs:roughness = 0.32
+                token outputs:surface
+            }
+        }
+
+        def Material "Teal"
+        {
+            token outputs:surface.connect = </DilutionStation/Looks/Teal/Preview.outputs:surface>
+
+            def Shader "Preview"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.012, 0.26, 0.24)
+                float inputs:metallic = 0
+                float inputs:roughness = 0.38
+                token outputs:surface
+            }
+        }
+
+        def Material "TipDye"
+        {
+            token outputs:surface.connect = </DilutionStation/Looks/TipDye/Preview.outputs:surface>
+
+            def Shader "Preview"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.008, 0.035, 0.34)
+                float inputs:metallic = 0
+                float inputs:roughness = 0.26
+                token outputs:surface
+            }
+        }
+    }
+
+    def Xform "Cabinet"
+    {
+        def Cube "Plinth" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+            rel material:binding = </DilutionStation/Looks/Slate>
+            color3f[] primvars:displayColor = [(0.048, 0.074, 0.095)]
+            double size = 1
+            float3 xformOp:scale = (0.68, 0.74, 0.072)
+            double3 xformOp:translate = (0, 0.01, -0.814)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+        }
+
+        def Cube "Case" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+            rel material:binding = </DilutionStation/Looks/Cabinet>
+            color3f[] primvars:displayColor = [(0.32, 0.4, 0.44)]
+            double size = 1
+            float3 xformOp:scale = (0.7, 0.76, 0.724)
+            double3 xformOp:translate = (0, 0.01, -0.416)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+        }
+
+        def Cube "Worktop" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+            rel material:binding = </DilutionStation/Looks/Worktop>
+            color3f[] primvars:displayColor = [(0.17, 0.23, 0.27)]
+            double size = 1
+            float3 xformOp:scale = (0.78, 0.884, 0.055)
+            double3 xformOp:translate = (0, 0, -0.0275)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+        }
+
+        def Cube "Drawer" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+            rel material:binding = </DilutionStation/Looks/Cabinet>
+            color3f[] primvars:displayColor = [(0.32, 0.4, 0.44)]
+            double size = 1
+            float3 xformOp:scale = (0.65, 0.022, 0.151)
+            double3 xformOp:translate = (0, -0.377, -0.155)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+        }
+
+        def Cube "Door" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+            rel material:binding = </DilutionStation/Looks/Cabinet>
+            color3f[] primvars:displayColor = [(0.32, 0.4, 0.44)]
+            double size = 1
+            float3 xformOp:scale = (0.65, 0.022, 0.472)
+            double3 xformOp:translate = (0, -0.377, -0.477)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+        }
+
+        def Cube "DrawerPull" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+            rel material:binding = </DilutionStation/Looks/Slate>
+            color3f[] primvars:displayColor = [(0.048, 0.074, 0.095)]
+            double size = 1
+            float3 xformOp:scale = (0.15, 0.025, 0.017)
+            double3 xformOp:translate = (0, -0.397, -0.156)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+        }
+
+        def Cube "DoorPull" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+            rel material:binding = </DilutionStation/Looks/Slate>
+            color3f[] primvars:displayColor = [(0.048, 0.074, 0.095)]
+            double size = 1
+            float3 xformOp:scale = (0.105, 0.025, 0.017)
+            double3 xformOp:translate = (0.217, -0.398, -0.334)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+        }
+    }
+
+    def Xform "Frame" (
+        prepend references = @./vendor/mk3_frame.usdc@
+    )
+    {
+    }
+
+    def Cube "Base" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </DilutionStation/Looks/Slate>
+        color3f[] primvars:displayColor = [(0.048, 0.074, 0.095)]
+        double size = 1
+        float3 xformOp:scale = (0.595, 0.386, 0.028)
+        double3 xformOp:translate = (0, 0, 0.014)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Cube "Rack" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </DilutionStation/Looks/Worktop>
+        color3f[] primvars:displayColor = [(0.17, 0.23, 0.27)]
+        double size = 1
+        float3 xformOp:scale = (0.585, 0.154, 0.02)
+        double3 xformOp:translate = (0, -0.11, 0.038)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Cube "RackEdge" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </DilutionStation/Looks/Teal>
+        color3f[] primvars:displayColor = [(0.012, 0.26, 0.24)]
+        double size = 1
+        float3 xformOp:scale = (0.585, 0.006, 0.014)
+        double3 xformOp:translate = (0, -0.187, 0.038)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Cube "PipetteRail" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+    )
+    {
+        float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+        rel material:binding = </DilutionStation/Looks/Steel>
+        color3f[] primvars:displayColor = [(0.36, 0.46, 0.54)]
+        double size = 1
+        float3 xformOp:scale = (0.62, 0.028, 0.031)
+        double3 xformOp:translate = (0, 0.065, 0.355)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+    }
+
+    def Xform "Carriage"
+    {
+        double3 xformOp:translate = (-0.2175, 0.065, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        def Cube "Slide" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+            rel material:binding = </DilutionStation/Looks/Slate>
+            color3f[] primvars:displayColor = [(0.048, 0.074, 0.095)]
+            double size = 1
+            float3 xformOp:scale = (0.083, 0.064, 0.049)
+            double3 xformOp:translate = (0, 0, 0.355)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+        }
+
+        def Cube "Bracket" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+            rel material:binding = </DilutionStation/Looks/Slate>
+            color3f[] primvars:displayColor = [(0.048, 0.074, 0.095)]
+            double size = 1
+            float3 xformOp:scale = (0.04, 0.176, 0.023)
+            double3 xformOp:translate = (0, -0.092, 0.355)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+        }
+
+        def Xform "Head"
+        {
+            custom double webLab:workingHeight = 0.202
+            double3 xformOp:translate = (0, -0.175, 0.278)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            def Cylinder "Stem" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                uniform token axis = "Z"
+                float3[] extent = [(-0.013, -0.013, -0.0685), (0.013, 0.013, 0.0685)]
+                double height = 0.137
+                rel material:binding = </DilutionStation/Looks/Steel>
+                color3f[] primvars:displayColor = [(0.36, 0.46, 0.54)]
+                double radius = 0.013
+                double3 xformOp:translate = (0, 0, 0.095)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Cube "Body" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+                rel material:binding = </DilutionStation/Looks/Porcelain>
+                color3f[] primvars:displayColor = [(0.74, 0.82, 0.86)]
+                double size = 1
+                float3 xformOp:scale = (0.064, 0.058, 0.084)
+                double3 xformOp:translate = (0, 0, -0.008)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+            }
+
+            def Cube "Band" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+                rel material:binding = </DilutionStation/Looks/Teal>
+                color3f[] primvars:displayColor = [(0.012, 0.26, 0.24)]
+                double size = 1
+                float3 xformOp:scale = (0.066, 0.06, 0.013)
+                double3 xformOp:translate = (0, 0, -0.037)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+            }
+
+            def Cone "Tip" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                uniform token axis = "Z"
+                float3[] extent = [(-0.014, -0.014, -0.042), (0.014, 0.014, 0.042)]
+                double height = 0.084
+                rel material:binding = </DilutionStation/Looks/Steel>
+                color3f[] primvars:displayColor = [(0.36, 0.46, 0.54)]
+                double radius = 0.014
+                float xformOp:rotateX = 180
+                double3 xformOp:translate = (0, 0, -0.092)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateX"]
+            }
+
+            def Cube "Indicator" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+                rel material:binding = </DilutionStation/Looks/Slate>
+                color3f[] primvars:displayColor = [(0.048, 0.074, 0.095)]
+                double size = 1
+                float3 xformOp:scale = (0.03, 0.002, 0.024)
+                double3 xformOp:translate = (0, -0.0295, 0.005)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+            }
+
+            def Cube "Loaded" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+                rel material:binding = </DilutionStation/Looks/TipDye>
+                color3f[] primvars:displayColor = [(0.008, 0.035, 0.34)]
+                double size = 1
+                token visibility = "invisible"
+                float3 xformOp:scale = (0.022, 0.002, 0.016)
+                double3 xformOp:translate = (0, -0.031, 0.005)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+            }
+        }
+    }
+
+    def Xform "Wells"
+    {
+        custom double webLab:unitHeight = 0.021
+
+        def Xform "Stock"
+        {
+            double3 xformOp:translate = (-0.2175, -0.11, 0.048)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            def Cylinder "Bottom" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                uniform token axis = "Z"
+                float3[] extent = [(-0.052, -0.052, -0.004), (0.052, 0.052, 0.004)]
+                double height = 0.008
+                rel material:binding = </DilutionStation/Looks/Porcelain>
+                color3f[] primvars:displayColor = [(0.74, 0.82, 0.86)]
+                double radius = 0.052
+                double3 xformOp:translate = (0, 0, 0.004)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+
+            def Mesh "Wall" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                float3[] extent = [(-0.052, -0.052, 0.006), (0.052, 0.052, 0.055)]
+                int[] faceVertexCounts = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+                int[] faceVertexIndices = [0, 1, 33, 32, 1, 2, 34, 33, 2, 3, 35, 34, 3, 4, 36, 35, 4, 5, 37, 36, 5, 6, 38, 37, 6, 7, 39, 38, 7, 8, 40, 39, 8, 9, 41, 40, 9, 10, 42, 41, 10, 11, 43, 42, 11, 12, 44, 43, 12, 13, 45, 44, 13, 14, 46, 45, 14, 15, 47, 46, 15, 16, 48, 47, 16, 17, 49, 48, 17, 18, 50, 49, 18, 19, 51, 50, 19, 20, 52, 51, 20, 21, 53, 52, 21, 22, 54, 53, 22, 23, 55, 54, 23, 24, 56, 55, 24, 25, 57, 56, 25, 26, 58, 57, 26, 27, 59, 58, 27, 28, 60, 59, 28, 29, 61, 60, 29, 30, 62, 61, 30, 31, 63, 62, 31, 0, 32, 63, 32, 33, 65, 64, 33, 34, 66, 65, 34, 35, 67, 66, 35, 36, 68, 67, 36, 37, 69, 68, 37, 38, 70, 69, 38, 39, 71, 70, 39, 40, 72, 71, 40, 41, 73, 72, 41, 42, 74, 73, 42, 43, 75, 74, 43, 44, 76, 75, 44, 45, 77, 76, 45, 46, 78, 77, 46, 47, 79, 78, 47, 48, 80, 79, 48, 49, 81, 80, 49, 50, 82, 81, 50, 51, 83, 82, 51, 52, 84, 83, 52, 53, 85, 84, 53, 54, 86, 85, 54, 55, 87, 86, 55, 56, 88, 87, 56, 57, 89, 88, 57, 58, 90, 89, 58, 59, 91, 90, 59, 60, 92, 91, 60, 61, 93, 92, 61, 62, 94, 93, 62, 63, 95, 94, 63, 32, 64, 95, 64, 65, 97, 96, 65, 66, 98, 97, 66, 67, 99, 98, 67, 68, 100, 99, 68, 69, 101, 100, 69, 70, 102, 101, 70, 71, 103, 102, 71, 72, 104, 103, 72, 73, 105, 104, 73, 74, 106, 105, 74, 75, 107, 106, 75, 76, 108, 107, 76, 77, 109, 108, 77, 78, 110, 109, 78, 79, 111, 110, 79, 80, 112, 111, 80, 81, 113, 112, 81, 82, 114, 113, 82, 83, 115, 114, 83, 84, 116, 115, 84, 85, 117, 116, 85, 86, 118, 117, 86, 87, 119, 118, 87, 88, 120, 119, 88, 89, 121, 120, 89, 90, 122, 121, 90, 91, 123, 122, 91, 92, 124, 123, 92, 93, 125, 124, 93, 94, 126, 125, 94, 95, 127, 126, 95, 64, 96, 127, 96, 97, 129, 128, 97, 98, 130, 129, 98, 99, 131, 130, 99, 100, 132, 131, 100, 101, 133, 132, 101, 102, 134, 133, 102, 103, 135, 134, 103, 104, 136, 135, 104, 105, 137, 136, 105, 106, 138, 137, 106, 107, 139, 138, 107, 108, 140, 139, 108, 109, 141, 140, 109, 110, 142, 141, 110, 111, 143, 142, 111, 112, 144, 143, 112, 113, 145, 144, 113, 114, 146, 145, 114, 115, 147, 146, 115, 116, 148, 147, 116, 117, 149, 148, 117, 118, 150, 149, 118, 119, 151, 150, 119, 120, 152, 151, 120, 121, 153, 152, 121, 122, 154, 153, 122, 123, 155, 154, 123, 124, 156, 155, 124, 125, 157, 156, 125, 126, 158, 157, 126, 127, 159, 158, 127, 96, 128, 159]
+                rel material:binding = </DilutionStation/Looks/Porcelain>
+                point3f[] points = [(0.052, 0, 0.006), (0.051001, 0.010145, 0.006), (0.048042, 0.0199, 0.006), (0.043236, 0.02889, 0.006), (0.03677, 0.03677, 0.006), (0.02889, 0.043236, 0.006), (0.0199, 0.048042, 0.006), (0.010145, 0.051001, 0.006), (0, 0.052, 0.006), (-0.010145, 0.051001, 0.006), (-0.0199, 0.048042, 0.006), (-0.02889, 0.043236, 0.006), (-0.03677, 0.03677, 0.006), (-0.043236, 0.02889, 0.006), (-0.048042, 0.0199, 0.006), (-0.051001, 0.010145, 0.006), (-0.052, 0, 0.006), (-0.051001, -0.010145, 0.006), (-0.048042, -0.0199, 0.006), (-0.043236, -0.02889, 0.006), (-0.03677, -0.03677, 0.006), (-0.02889, -0.043236, 0.006), (-0.0199, -0.048042, 0.006), (-0.010145, -0.051001, 0.006), (-0, -0.052, 0.006), (0.010145, -0.051001, 0.006), (0.0199, -0.048042, 0.006), (0.02889, -0.043236, 0.006), (0.03677, -0.03677, 0.006), (0.043236, -0.02889, 0.006), (0.048042, -0.0199, 0.006), (0.051001, -0.010145, 0.006), (0.052, 0, 0.049), (0.051001, 0.010145, 0.049), (0.048042, 0.0199, 0.049), (0.043236, 0.02889, 0.049), (0.03677, 0.03677, 0.049), (0.02889, 0.043236, 0.049), (0.0199, 0.048042, 0.049), (0.010145, 0.051001, 0.049), (0, 0.052, 0.049), (-0.010145, 0.051001, 0.049), (-0.0199, 0.048042, 0.049), (-0.02889, 0.043236, 0.049), (-0.03677, 0.03677, 0.049), (-0.043236, 0.02889, 0.049), (-0.048042, 0.0199, 0.049), (-0.051001, 0.010145, 0.049), (-0.052, 0, 0.049), (-0.051001, -0.010145, 0.049), (-0.048042, -0.0199, 0.049), (-0.043236, -0.02889, 0.049), (-0.03677, -0.03677, 0.049), (-0.02889, -0.043236, 0.049), (-0.0199, -0.048042, 0.049), (-0.010145, -0.051001, 0.049), (-0, -0.052, 0.049), (0.010145, -0.051001, 0.049), (0.0199, -0.048042, 0.049), (0.02889, -0.043236, 0.049), (0.03677, -0.03677, 0.049), (0.043236, -0.02889, 0.049), (0.048042, -0.0199, 0.049), (0.051001, -0.010145, 0.049), (0.047, 0, 0.055), (0.046097, 0.009169, 0.055), (0.043422, 0.017986, 0.055), (0.039079, 0.026112, 0.055), (0.033234, 0.033234, 0.055), (0.026112, 0.039079, 0.055), (0.017986, 0.043422, 0.055), (0.009169, 0.046097, 0.055), (0, 0.047, 0.055), (-0.009169, 0.046097, 0.055), (-0.017986, 0.043422, 0.055), (-0.026112, 0.039079, 0.055), (-0.033234, 0.033234, 0.055), (-0.039079, 0.026112, 0.055), (-0.043422, 0.017986, 0.055), (-0.046097, 0.009169, 0.055), (-0.047, 0, 0.055), (-0.046097, -0.009169, 0.055), (-0.043422, -0.017986, 0.055), (-0.039079, -0.026112, 0.055), (-0.033234, -0.033234, 0.055), (-0.026112, -0.039079, 0.055), (-0.017986, -0.043422, 0.055), (-0.009169, -0.046097, 0.055), (-0, -0.047, 0.055), (0.009169, -0.046097, 0.055), (0.017986, -0.043422, 0.055), (0.026112, -0.039079, 0.055), (0.033234, -0.033234, 0.055), (0.039079, -0.026112, 0.055), (0.043422, -0.017986, 0.055), (0.046097, -0.009169, 0.055), (0.043, 0, 0.049), (0.042174, 0.008389, 0.049), (0.039727, 0.016455, 0.049), (0.035753, 0.02389, 0.049), (0.030406, 0.030406, 0.049), (0.02389, 0.035753, 0.049), (0.016455, 0.039727, 0.049), (0.008389, 0.042174, 0.049), (0, 0.043, 0.049), (-0.008389, 0.042174, 0.049), (-0.016455, 0.039727, 0.049), (-0.02389, 0.035753, 0.049), (-0.030406, 0.030406, 0.049), (-0.035753, 0.02389, 0.049), (-0.039727, 0.016455, 0.049), (-0.042174, 0.008389, 0.049), (-0.043, 0, 0.049), (-0.042174, -0.008389, 0.049), (-0.039727, -0.016455, 0.049), (-0.035753, -0.02389, 0.049), (-0.030406, -0.030406, 0.049), (-0.02389, -0.035753, 0.049), (-0.016455, -0.039727, 0.049), (-0.008389, -0.042174, 0.049), (-0, -0.043, 0.049), (0.008389, -0.042174, 0.049), (0.016455, -0.039727, 0.049), (0.02389, -0.035753, 0.049), (0.030406, -0.030406, 0.049), (0.035753, -0.02389, 0.049), (0.039727, -0.016455, 0.049), (0.042174, -0.008389, 0.049), (0.043, 0, 0.006), (0.042174, 0.008389, 0.006), (0.039727, 0.016455, 0.006), (0.035753, 0.02389, 0.006), (0.030406, 0.030406, 0.006), (0.02389, 0.035753, 0.006), (0.016455, 0.039727, 0.006), (0.008389, 0.042174, 0.006), (0, 0.043, 0.006), (-0.008389, 0.042174, 0.006), (-0.016455, 0.039727, 0.006), (-0.02389, 0.035753, 0.006), (-0.030406, 0.030406, 0.006), (-0.035753, 0.02389, 0.006), (-0.039727, 0.016455, 0.006), (-0.042174, 0.008389, 0.006), (-0.043, 0, 0.006), (-0.042174, -0.008389, 0.006), (-0.039727, -0.016455, 0.006), (-0.035753, -0.02389, 0.006), (-0.030406, -0.030406, 0.006), (-0.02389, -0.035753, 0.006), (-0.016455, -0.039727, 0.006), (-0.008389, -0.042174, 0.006), (-0, -0.043, 0.006), (0.008389, -0.042174, 0.006), (0.016455, -0.039727, 0.006), (0.02389, -0.035753, 0.006), (0.030406, -0.030406, 0.006), (0.035753, -0.02389, 0.006), (0.039727, -0.016455, 0.006), (0.042174, -0.008389, 0.006)]
+                color3f[] primvars:displayColor = [(0.74, 0.82, 0.86)]
+                uniform token subdivisionScheme = "none"
+            }
+
+            def Material "Mixture"
+            {
+                token outputs:surface.connect = </DilutionStation/Wells/Stock/Mixture/Preview.outputs:surface>
+
+                def Shader "Preview"
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    color3f inputs:diffuseColor = (0.008, 0.035, 0.34)
+                    float inputs:metallic = 0
+                    float inputs:roughness = 0.32
+                    token outputs:surface
+                }
+            }
+
+            def Cylinder "Liquid" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                uniform token axis = "Z"
+                float3[] extent = [(-0.0425, -0.0425, -0.021), (0.0425, 0.0425, 0.021)]
+                double height = 0.042
+                rel material:binding = </DilutionStation/Wells/Stock/Mixture>
+                color3f[] primvars:displayColor = [(0.008, 0.035, 0.34)]
+                double radius = 0.0425
+                double3 xformOp:translate = (0, 0, 0.028)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+        }
+
+        def Xform "Half" (
+            prepend references = </DilutionStation/Wells/Stock>
+        )
+        {
+            double3 xformOp:translate = (-0.0725, -0.11, 0.048)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            over "Liquid"
+            {
+                float3[] extent = [(-0.0425, -0.0425, -0.0105), (0.0425, 0.0425, 0.0105)]
+                double height = 0.021
+                color3f[] primvars:displayColor = [(0.65, 0.84, 0.9)]
+                double3 xformOp:translate = (0, 0, 0.0175)
+            }
+
+            over "Mixture"
+            {
+                over "Preview"
+                {
+                    color3f inputs:diffuseColor = (0.65, 0.84, 0.9)
+                }
+            }
+        }
+
+        def Xform "Quarter" (
+            prepend references = </DilutionStation/Wells/Stock>
+        )
+        {
+            double3 xformOp:translate = (0.0725, -0.11, 0.048)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            over "Liquid"
+            {
+                float3[] extent = [(-0.0425, -0.0425, -0.0105), (0.0425, 0.0425, 0.0105)]
+                double height = 0.021
+                color3f[] primvars:displayColor = [(0.65, 0.84, 0.9)]
+                double3 xformOp:translate = (0, 0, 0.0175)
+            }
+
+            over "Mixture"
+            {
+                over "Preview"
+                {
+                    color3f inputs:diffuseColor = (0.65, 0.84, 0.9)
+                }
+            }
+        }
+
+        def Xform "Eighth" (
+            prepend references = </DilutionStation/Wells/Stock>
+        )
+        {
+            double3 xformOp:translate = (0.2175, -0.11, 0.048)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            over "Liquid"
+            {
+                float3[] extent = [(-0.0425, -0.0425, -0.0105), (0.0425, 0.0425, 0.0105)]
+                double height = 0.021
+                color3f[] primvars:displayColor = [(0.65, 0.84, 0.9)]
+                double3 xformOp:translate = (0, 0, 0.0175)
+            }
+
+            over "Mixture"
+            {
+                over "Preview"
+                {
+                    color3f inputs:diffuseColor = (0.65, 0.84, 0.9)
+                }
+            }
+        }
+    }
+}
+

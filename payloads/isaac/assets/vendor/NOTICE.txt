@@ -1,0 +1,25 @@
+MK3 frame
+
+Open Lab Automata's MK3 structural profiles are licensed under the CERN Open
+Hardware Licence v2, strongly reciprocal. The full license and upstream notice
+are in CERN-OHL-S-2.0.txt in this directory.
+
+Source at commit b3f0c20615c7595e6b2b22d72bb7132a9f409158
+https://gitlab.com/open-la/pipettin-bot/-/tree/b3f0c20615c7595e6b2b22d72bb7132a9f409158/models/MK3/structure
+
+Modified on 2026-11-20. The visible profiles from PROF-2020V.FCStd and their
+placements in AS-STRUCTURE.FCStd were tessellated, centered on the base, and
+converted from millimeters to meters. The mesh uses a USD Preview Surface
+material. mk3_frame.usdc is the editable USD form of the adapted frame.
+
+Erlenmeyer flask
+
+The Erlenmeyer flask mesh (qt_lab_000016) is by QUIKTECH. It is licensed under
+Creative Commons Attribution 4.0 International (CC BY 4.0).
+https://creativecommons.org/licenses/by/4.0/
+
+Source at commit 05b4f3d27093e127c2983a5b6c583a333debd1e8
+https://huggingface.co/datasets/quiktech/SimReady-Assets/tree/05b4f3d27093e127c2983a5b6c583a333debd1e8/qt_lab_000016
+
+The visual mesh was extracted and a USD Preview Surface glass material was
+assigned. The packaged flask is a static prop.

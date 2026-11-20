@@ -4,7 +4,8 @@
 
 The co-worker owns one live Isaac Sim workcell per running service attempt.
 It opens the bundled, self-contained OpenUSD bench and continually renders
-overview and deck cameras. The operator can move four arm joints, hold motion,
+overview and deck cameras. The included food-dye sample starts with the live
+cameras. The operator can move four arm joints, hold motion,
 return the arm to its starting positions, move an inspection-station lid,
 and switch an inspection light. The workcell uses inert props and kinematic
 transforms scoped to the simulated stage.
@@ -19,10 +20,11 @@ transforms scoped to the simulated stage.
 - Supervise the process and rendered heartbeat. A failed process or stale
   render stream fails the service. Pause or stop retires the claim and ends
   the owned child process. A replacement or resumed attempt starts at the
-  authored pose with a fresh command session.
+  authored pose and restarts the sample with a fresh command session.
 - Publish the last observed state to `equipment_state.json` while running and
   on shutdown. Include service status, observation time, observed positions
-  and current targets, light state and up to 12 applied command receipts.
+  and current targets, light state, sample status and concentrations, and up to
+  12 applied command receipts.
   The position and activity fields qualify the last observation on shutdown.
 
 ## Interaction and state
@@ -41,3 +43,16 @@ transforms scoped to the simulated stage.
 - Hold captures the currently rendered pose and clears active targets. A fresh
   move or home command can start motion again. Home only targets the four arm
   joints. Command admission and rendering continue while the workspace is closed.
+
+## Dye dilution sample
+
+- The fixed sample starts with one vessel of stock dye and three vessels of
+  water. Each transfer visits the source and target on the USD stage, animates
+  the draw and dispense, and updates the corresponding liquid level and color.
+- Three transfers produce relative dye concentrations of 100%, 50%, 25% and
+  12.5%. The values come from the same deterministic mixing model used to paint
+  the rendered frame. The workspace shows the current action, completed transfer
+  count and relative concentration alongside each frame.
+- **Stop sample** freezes the current simulated pose and mixture. **Run sample
+  again** restores its starting pose and mixture. Both controls require the
+  current revision. The inspection bench uses its own manual controls.

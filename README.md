@@ -1,9 +1,8 @@
 # Web Lab Operator
 
-Monitor and control a live, Andrew+-inspired workcell in NVIDIA Isaac Sim.
-The co-worker keeps the workcell running while its window is closed. Open
-**Web lab live** in OtterDesk to see the latest camera frames and operate the
-simulated equipment.
+Watch a food-dye dilution and control an Andrew+-inspired inspection bench in
+NVIDIA Isaac Sim. Open **Web lab live** in OtterDesk to follow the sample and
+view the equipment. The workcell keeps running when its window is closed.
 
 ## Start the workcell
 
@@ -15,7 +14,7 @@ MirrorNeuron SDK and worker installation matching
 [`dependencies.json`](dependencies.json). Source-mode development can prepare
 those dependencies from the matching local SDK and agent checkouts.
 
-Hire or refresh **Web Lab Operator**, select **Live lab workcell**, and start
+Hire or refresh **Web Lab Operator**, select **Dye dilution sample**, and start
 the co-worker on the NVIDIA execution computer. Open **Web lab live** after
 both cameras are ready. To start from a local catalog checkout, run:
 
@@ -23,7 +22,15 @@ both cameras are ready. To start from a local catalog checkout, run:
 mn blueprint run ./web_lab_operator --detached --follow-seconds 0
 ```
 
-Use **Overview** for the full bench and **Deck** for the overhead camera.
+The sample starts when the cameras begin streaming. The pipette draws from
+each mixed vessel, moves to the next vessel and dispenses into water. The panel
+reports the applied transfers and relative dye concentration. At completion,
+the four vessels show stock, 50%, 25% and 12.5% with a visible color gradient.
+Use **Stop sample** to keep the current result or **Run sample again** to reset
+the dye and water and replay the sequence. The sample updates USD transforms,
+liquid height and color from a deterministic mixing model.
+
+Use **Overview** for the full workcell and **Deck** for the overhead camera.
 **Equipment** shows the positions observed in the USD stage after the current
 render. Choose a joint and target to move the arm. Use **Hold motion** to keep
 the current positions and **Home arm** to return the four arm joints to their
@@ -32,8 +39,8 @@ an inspection light. **Recent actions** shows the latest controls that Isaac Sim
 applied. A motion stays **Moving** until the target is reached or held.
 
 Pause or stop the co-worker to shut down the workspace and simulator. Resuming
-opens a fresh session at the starting positions. The most recent equipment
-observation is stored in the Job's run store and configured output folder as
+opens a fresh session and starts the sample again. The latest equipment and
+dilution observation is stored in the Job's run store and configured output folder as
 `equipment_state.json`. The default output folder is
 `~/Downloads/web-lab-operator`. Use its observation time and service status
 when reviewing a saved state.
@@ -41,14 +48,17 @@ when reviewing a saved state.
 ## OpenUSD assets
 
 Open [web_lab.usda](payloads/isaac/assets/web_lab.usda) in Isaac Sim to inspect
-the full bench. It references the reusable
-[andrew_plus.usda](payloads/isaac/assets/andrew_plus.usda) component. Keep the
-two files together when copying the scene.
+the workcell. It composes the
+[inspection bench](payloads/isaac/assets/andrew_plus.usda),
+[dilution station](payloads/isaac/assets/dilution_station.usda) and local vendor
+meshes. Keep the `assets` directory together when copying the scene. The frame
+comes from the Open Lab Automata MK3 structural CAD, and the flask comes from
+the QUIKTECH SimReady catalog. See the [asset notices](payloads/isaac/assets/vendor/NOTICE.txt).
 
 The column, folding arm, dock and modular bench fixtures take visual cues from
 Michael Raspuzzi's Andrew+ visualization. The USD geometry and control limits
-are original and illustrative. The arm and lid are kinematic, and the deck
-contains dry inspection props. [3D Lab Views](https://michaelraspuzzi.github.io/labautomationin3d/#andrew-plus)
+are original and illustrative. The kinematic arm and lid sit on the dry
+inspection bench. [3D Lab Views](https://michaelraspuzzi.github.io/labautomationin3d/#andrew-plus)
 
 The standard MirrorNeuron service blocks supervise Isaac Sim and authorize the
 Job workspace through its Web UI proxy. The controls apply to the USD session

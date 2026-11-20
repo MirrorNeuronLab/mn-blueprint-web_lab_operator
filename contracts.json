@@ -1,6 +1,6 @@
 {
   "$schema": "https://mirrorneuron.io/schemas/blueprint/v1/contracts.schema.json",
-  "summary": "Observed state and recent manual actions in the live Isaac Sim workcell.",
+  "summary": "Dye dilution progress, observed equipment state and recent controls in the live Isaac Sim workcell.",
   "input_adapters": {
     "default": "json",
     "supported": [
@@ -60,6 +60,7 @@
         "motion",
         "joints",
         "inspection_light",
+        "sample",
         "recent_actions"
       ]
     }
@@ -67,6 +68,6 @@
   "privacy": {
     "classification": "internal",
     "external_sharing": "disabled",
-    "notes": "The Job workspace streams the simulated workcell only. The service stores the latest equipment state and recent manual actions."
+    "notes": "The Job workspace streams the simulated workcell. The service stores simulated dye concentrations, equipment state and recent controls."
   }
 }

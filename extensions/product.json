@@ -2,12 +2,12 @@
   "$schema": "https://mirrorneuron.io/schemas/blueprint/v1/extensions/product.schema.json",
   "category": "Research",
   "intent": {
-    "problem": "Inspect and position simulated lab equipment in a running workcell.",
+    "problem": "See how a dilution series produces a predictable range of dye concentrations.",
     "target_users": "Lab automation developers and educators.",
     "safety": {
       "enabled": true,
       "mode": "simulation_only",
-      "reason": "Manual controls operate an OpenUSD model with inert fixtures.",
+      "reason": "Controls and the food-dye sample operate a simulated OpenUSD workcell.",
       "blocked_actions": [
         "control_physical_devices",
         "run_lab_protocols",
@@ -17,10 +17,10 @@
   },
   "product": {
     "agent_role": "Simulated lab equipment operator",
-    "benefit": "See how the workcell responds to manual controls.",
-    "how_it_works": "Isaac Sim renders the OpenUSD workcell and reports its current joint positions and equipment state.",
-    "input": "The bundled workcell and manual operator controls.",
-    "output": "Live overview and deck cameras, observed equipment state and recent actions.",
+    "benefit": "Watch one stock dye become three weaker samples.",
+    "how_it_works": "Isaac Sim shows each draw and dispense, the resulting dye strengths, and the workcell's response to manual controls.",
+    "input": "The bundled dye and water sample and manual operator controls.",
+    "output": "Live overview and deck cameras, dilution progress and concentrations, equipment state and recent actions.",
     "runtime_features": [
       "Isaac Sim",
       "OpenUSD",
