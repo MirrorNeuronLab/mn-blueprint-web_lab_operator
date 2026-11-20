@@ -1,54 +1,20 @@
-# Web Lab Operator manual
+# Web Lab Operator user manual
 
-Web Lab Operator turns Markdown procedures into a simulation-only PyLabRobot
-run. Supply exact starting plate/well volumes and liquid labels, numbered
-transfer/mix/wait/check instructions and final well-volume goals. Use one to four
-96-well plates and fresh 300 uL tips. The included synthetic example shows how
-a declared reserve source can resolve an insufficient primary source in an
-20-step, three-plate dilution series with split transfers, readout aliquots and a
-blank control. The blank encounters a second source shortage after earlier work.
+Start **Live lab workcell** on a Linux execution computer with Docker, the
+NVIDIA Container Toolkit and at least 48 GiB of NVIDIA GPU-accessible memory.
+The included workcell runs in Isaac Sim on DGX Spark.
 
-Provide pasted Markdown or a .md file, clearing the other input. Start a run
-explicitly. Open Web lab as soon as the run starts. The 3D workcell is empty
-while the procedure is prepared and planned. Once the plan is validated, the
-scene shows its plates and tip rack. During execution, Web lab names each
-confirmed operation and highlights its target. Aspirations and dispenses remain
-separately visible during mixing. Rotate or zoom the deck and select a well to
-see its tracked volume. Completed-step counts and the saved replay use
-whole-step observations. Use the co-worker's existing controls to pause, resume
-or stop. Chat questions read context and leave the procedure untouched.
+Open **Web lab live** when the co-worker reports that the cameras are ready.
+Use **Overview** to see the bench and **Deck** for the overhead view. Equipment
+readings come from the current simulated frame.
 
-Chat reports tracked shortages and predicted volume/tip violations before the
-next operation, confirms successful reserve transfers, and explains stopped
-procedures. These are simulation facts, not physical accidents. The web page
-shows the deck with a newest-first event stream below; detailed goals and
-limitations remain in the report.
+Choose a joint, enter a target and select **Move joint**. **Hold motion** keeps
+the current position and clears pending movement targets. **Home arm** returns
+the arm joints to their starting positions. Operate the inspection lid and
+light with their own controls. Recent actions show controls that were applied.
+All controls are scoped to the simulated workcell.
 
-Inspect plan.json, procedure.md, trace.json, simulation.json, memory.json and report.md.
-After completion, the web result is an optional read-only deck replay with
-observation controls. Needs review means the procedure stopped without proving
-all required outcomes; revise the Markdown and start a new run. A missing or
-unsupported instruction, unavailable liquid, exhausted tips or failed volume
-check never counts as a completed experiment.
-
-Membrane remembers observed step outcomes and run reviews within this hired
-co-worker's private Job. Planning can consider prior successes, failures and
-review issues; each next-step decision receives matching experience and recent
-current-run observations. Current instructions and tracked state take precedence.
-Earlier success cannot authorize another source, change a goal or skip a check.
-Recall is bounded and may omit records. memory.json shows the history supplied,
-its source citations, omissions and saved outcome receipts. A separate hired
-co-worker has separate history. Memory is enabled by default; an unavailable
-memory service stops the phase. An explicit text_memory.enabled=false override
-disables recall and recording and marks the audit accordingly.
-
-The standard supervision tools expose capabilities, run state, results and
-execution controls. The blueprint adds no domain mutation tools. Saved
-explanation preferences affect Chat wording only. See the
-[conversation guide](conversation_guide.md) for stage-specific help.
-
-No physical devices are available. Tracked volume is bookkeeping, not a liquid
-measurement. Chemistry, incubation, contamination, collisions and biological
-outcomes are outside this simulation. The selected model route receives the
-procedure, bounded deck state and selected history. Runtime Membrane retains
-job-private simulated experience; evidence remains in the runtime-owned run store.
+Pause or stop the co-worker to shut down the simulator. Resume to start the
+workcell at its initial pose. Open `equipment_state.json` in the configured
+output folder to review the last observed positions, light and action history
+with their observation time.

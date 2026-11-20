@@ -2,10 +2,10 @@
   "$schema": "https://mirrorneuron.io/schemas/blueprint/v1/manifest.schema.json",
   "id": "web_lab_operator",
   "name": "Web Lab Operator",
-  "tagline": "Run supervised liquid-handling simulations from Markdown",
+  "tagline": "Monitor and control a live 3D lab workcell",
   "payload_api": "mn.blueprint.v1",
-  "version": "1.5.0",
-  "description": "Turn Markdown procedures into a supervised PyLabRobot liquid-handling simulation. Recall prior outcomes with Membrane, observe the deck, make bounded adaptations and review the saved evidence.",
+  "version": "2.0.0",
+  "description": "Operate an Andrew+-inspired workcell in NVIDIA Isaac Sim. Watch the live cameras, inspect joint positions and move the arm, lid and inspection light from Web lab.",
   "workflow": "workflow.json",
   "execution": "execution.json",
   "contracts": "contracts.json",
@@ -32,10 +32,6 @@
     },
     "mn.rag": {
       "file": "extensions/rag.json",
-      "required": true
-    },
-    "mn.llm": {
-      "file": "extensions/llm.json",
       "required": true
     },
     "mn.ui": {

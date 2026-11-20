@@ -1,49 +1,24 @@
 {
   "$schema": "https://mirrorneuron.io/schemas/blueprint/v1/extensions/ui.schema.json",
   "starter_questions": [
-    "How can I try the included dilution series?",
-    "What should my Markdown procedure include?",
-    "Why did the last procedure adapt or stop?",
-    "What does this simulation verify?"
+    "How do I move the arm?",
+    "What does Hold motion do?",
+    "What computer can run Web lab?"
   ],
   "setup_guide": {
     "schema": "otterdesk.setup_guide.v1",
-    "introduction": "Try the included dilution-series sample to watch a simulated procedure and see how its checks are recorded. You can also bring your own Markdown procedure.",
+    "introduction": "Start the simulated workcell to view the bench and control the arm and inspection station.",
     "sample": {
       "available": true,
-      "title": "Synthetic dilution series with two shortage recoveries",
-      "description": "Run the bundled dilution series and see how the simulation handles two supply shortages.",
-      "expected_output": "A simulated deck, volume checks and a replay of the procedure.",
-      "values": {
-        "inputs.payload.procedure_markdown": "",
-        "inputs.payload.procedure_file": "@/examples/sample_inputs/procedure.md"
-      }
+      "title": "Live lab workcell",
+      "description": "Open the Isaac Sim cameras and move the equipment from Web lab.",
+      "expected_output": "Live views and equipment readings, with the latest state saved when you stop.",
+      "values": {}
     },
     "real": {
-      "available": true,
-      "introduction": "Use your own Markdown procedure in the simulator.",
-      "values": {
-        "inputs.payload.procedure_markdown": "",
-        "inputs.payload.procedure_file": ""
-      }
+      "available": false
     },
     "fields": [
-      {
-        "path": "inputs.payload.procedure_markdown",
-        "label": "Lab procedure",
-        "type": "textarea",
-        "required": false,
-        "description": "Paste Markdown with explicit starting volumes, numbered steps and final goals. Clear the procedure file when using text."
-      },
-      {
-        "path": "inputs.payload.procedure_file",
-        "label": "Procedure file",
-        "type": "local_path",
-        "path_kind": "file",
-        "role": "input",
-        "required": false,
-        "description": "Select a .md file instead of pasting text."
-      },
       {
         "path": "outputs.folder_path",
         "label": "Output folder",
@@ -60,20 +35,20 @@
         "value_type": "array",
         "required": false,
         "default": [],
-        "description": "Managed in Memory. Changes Chat wording; revise the Markdown and start a new run to change the procedure."
+        "description": "Managed in Memory. Changes how the co-worker explains the workcell in Chat."
       }
     ],
     "prompt_file": "@/payloads/prompts/setup.md",
     "run_guidance": {
-      "on_start": "I’ll turn the procedure into a simulation plan so you can follow the steps and see how exceptions are handled.",
-      "web_ui_ready": "Open Web lab to see the current phase. As simulated steps appear, compare a movement on the deck with its entry in the event stream.",
-      "output_ready": "Open report.md in the output folder to review the simulation checks and any steps that need attention."
+      "on_start": "I’ll open the workcell in Isaac Sim and wait for both cameras.",
+      "web_ui_ready": "Open Web lab live to watch the bench and use the manual controls.",
+      "output_ready": "Open the output folder to see the latest observed equipment state."
     }
   },
   "web_ui": {
     "enabled": true,
-    "adapter": "static_html",
-    "title": "Web lab",
-    "description": "Watch the simulated equipment operate in 3D, then review the saved replay."
+    "adapter": "external-url",
+    "title": "Web lab live",
+    "description": "Watch and control the running Isaac Sim workcell."
   }
 }

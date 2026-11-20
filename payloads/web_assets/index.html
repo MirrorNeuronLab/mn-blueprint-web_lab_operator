@@ -3,59 +3,90 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Web lab</title>
-  <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css">
+  <title>Web lab live</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
 </head>
 <body>
   <main>
-    <section aria-label="Simulated deck" class="deck-panel">
-      <header class="deck-toolbar">
-        <div class="deck-heading">
-          <h2>Simulated deck</h2>
-          <span id="tip-count" hidden></span>
-        </div>
-        <div id="deck-tools" role="group" aria-label="Deck view" hidden>
-          <button id="zoom-out" type="button" aria-label="Zoom out" title="Zoom out">−</button>
-          <button id="zoom-in" type="button" aria-label="Zoom in" title="Zoom in">+</button>
-          <button id="fit-deck" type="button">Fit deck</button>
-        </div>
-      </header>
-      <div class="workcell">
-        <canvas id="deck" role="img" aria-label="3D lab deck" aria-describedby="deck-keys" tabindex="0"></canvas>
-        <div id="deck-labels" aria-hidden="true" hidden><span id="deck-target" class="lab-label" hidden></span></div>
-        <p id="deck-help" aria-hidden="true" hidden>Drag to rotate · Scroll to zoom</p>
-        <span id="deck-keys" class="sr-only">Use arrow keys to rotate, plus or minus to zoom, and Home to fit the deck.</span>
-        <p id="deck-unavailable" role="status" hidden>3D view unavailable in this browser.</p>
+    <header class="heading">
+      <div>
+        <h1>Web lab live</h1>
+        <p>Simulated workcell · NVIDIA Isaac Sim</p>
       </div>
-      <div id="well-inspector" hidden>
-        <label>Plate <select id="plate"></select></label>
-        <label>Well <select id="well"></select></label>
-        <output id="well-detail" role="status" for="plate well"></output>
-      </div>
-    </section>
-    <section id="replay" hidden aria-label="Replay controls">
-      <button id="previous" type="button">Previous</button><button id="play" type="button">Play</button>
-      <input id="frame" aria-label="Observation" type="range" min="0" value="0"><output id="position" for="frame"></output>
-      <button id="next" type="button">Next</button>
-    </section>
-    <section class="activity" aria-label="Event stream">
-      <details id="saved-assessment" hidden>
-        <summary>Saved simulation assessment</summary>
-        <p id="assessment-outcome"></p>
-        <p id="assessment-evidence"></p>
-      </details>
-      <div class="identity"><h2>Events</h2><div class="state"><span id="status" role="status">Connecting</span><span id="progress"></span></div></div>
-      <div id="operation" role="status" hidden><span id="current-step" class="step"></span><span id="operation-label"></span></div>
+      <span id="connection" class="status" role="status" data-state="waiting">Connecting</span>
+    </header>
+
+    <div class="workspace">
+      <section aria-label="Workcell cameras" class="panel">
+        <div class="panel-heading">
+          <h2>Camera view</h2>
+          <div class="segmented" role="group" aria-label="Select camera">
+            <button type="button" data-camera="overview" aria-pressed="true" disabled>Overview</button>
+            <button type="button" data-camera="deck" aria-pressed="false" disabled>Deck</button>
+          </div>
+        </div>
+        <div class="camera">
+          <p id="waiting">Waiting for a camera frame</p>
+          <img id="frame" alt="Live overview of the simulated workcell" hidden>
+        </div>
+        <div class="camera-meta">
+          <span id="camera-label">Overview</span>
+          <span id="observed-at">Waiting for Isaac Sim</span>
+        </div>
+      </section>
+
+      <section aria-labelledby="equipment-title" class="panel equipment">
+        <div class="panel-heading">
+          <h2 id="equipment-title">Equipment</h2>
+          <span id="motion" class="status" data-state="waiting">Waiting</span>
+        </div>
+        <dl id="readings" class="readings" aria-label="Observed position">
+          <div><dt>Lift</dt><dd data-reading="lift">—</dd></div>
+          <div><dt>Shoulder</dt><dd data-reading="shoulder">—</dd></div>
+          <div><dt>Elbow</dt><dd data-reading="elbow">—</dd></div>
+          <div><dt>Wrist</dt><dd data-reading="wrist">—</dd></div>
+          <div><dt>Inspection lid</dt><dd data-reading="lid">—</dd></div>
+          <div><dt>Inspection light</dt><dd id="light-state">—</dd></div>
+        </dl>
+
+        <form id="move-form" autocomplete="off">
+          <fieldset id="position-controls" disabled>
+            <legend>Move a joint</legend>
+            <div class="joint-fields">
+              <div>
+                <label for="joint">Joint</label>
+                <select id="joint">
+                  <option value="lift">Lift</option>
+                  <option value="shoulder">Shoulder</option>
+                  <option value="elbow">Elbow</option>
+                  <option value="wrist">Wrist</option>
+                </select>
+              </div>
+              <div>
+                <label for="target">Target <span id="unit"></span></label>
+                <input id="target" type="number" step="1" required>
+              </div>
+            </div>
+            <input id="range" type="range" step="1" aria-label="Adjust joint target">
+            <button class="primary" type="submit">Move joint</button>
+          </fieldset>
+        </form>
+        <div class="actions" aria-label="Workcell controls">
+          <button id="hold" type="button" disabled>Hold motion</button>
+          <button id="home" type="button" disabled>Home arm</button>
+          <button id="lid" type="button" disabled>Open lid</button>
+          <button id="light" type="button" disabled>Turn light on</button>
+        </div>
+        <p id="command-feedback" class="feedback" role="status"></p>
+      </section>
+    </div>
+
+    <section class="panel activity" aria-labelledby="activity-title">
+      <div class="panel-heading"><h2 id="activity-title">Recent actions</h2></div>
+      <p id="activity-empty">Actions will appear here after the workcell applies them.</p>
       <ol id="events"></ol>
-      <p id="empty">Waiting for the simulation.</p>
-      <p id="reason" role="status" hidden></p>
-      <p id="connection" role="alert" hidden>Connection lost. Reconnecting…</p>
     </section>
   </main>
-  <script src="vendor/three.min.js" defer></script>
-  <script src="equipment.js" defer></script>
-  <script src="deck.js" defer></script>
-  <script src="app.js" defer></script>
 </body>
 </html>

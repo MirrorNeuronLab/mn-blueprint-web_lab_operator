@@ -1,273 +1,72 @@
 # Web Lab Operator
 
-Turn a Markdown lab procedure into a supervised **PyLabRobot simulation**. The
-co-worker plans typed steps, observes the tracked deck before each step and can
-switch to an explicitly allowed source well when the primary source is short.
-Watch the 3D workcell during the run and review a self-contained
-3D replay, decisions and final volume checks afterwards. Membrane retains
-job-private experience so later decisions can consider what worked and failed.
+Monitor and control a live, Andrew+-inspired workcell in NVIDIA Isaac Sim.
+The co-worker keeps the workcell running while its window is closed. Open
+**Web lab live** in OtterDesk to see the latest camera frames and operate the
+simulated equipment.
 
-This blueprint controls simulated liquid handling only. It never constructs a
-hardware backend or executes model-generated Python. PyLabRobot's trackers model
-liquid volumes and tips; they do not establish experimental or physical results.
+## Start the workcell
 
-## Start with the included example
+Use a Linux execution computer with Docker, the NVIDIA Container Toolkit and
+at least 48 GiB of NVIDIA GPU-accessible memory. Unified memory on DGX Spark
+counts toward this requirement. The first start prepares the Isaac Sim 6.2
+worker image and compiles shaders, which can take several minutes. Use a
+MirrorNeuron SDK and worker installation matching
+[`dependencies.json`](dependencies.json). Source-mode development can prepare
+those dependencies from the matching local SDK and agent checkouts.
 
-Use a runtime node with at least one GPU and 48 GB of GPU memory. The GPU
-vendor is unrestricted. The Job's allocation is shared by its Docker worker
-and model requests. The 48 GB minimum is a hard requirement for the whole Job;
-nodes below it are rejected even when selected explicitly.
+Hire or refresh **Web Lab Operator**, select **Live lab workcell**, and start
+the co-worker on the NVIDIA execution computer. Open **Web lab live** after
+both cameras are ready. To start from a local catalog checkout, run:
 
-Prepare a MirrorNeuron Docker worker, the runtime's configured text model and
-its matching authenticated Membrane v2 context service,
-then hire **Web Lab Operator** in OtterDesk and select the included sample. From
-a checkout you can also run:
-
-```bash
-mn blueprint run ./web_lab_operator
+```sh
+mn blueprint run ./web_lab_operator --detached --follow-seconds 0
 ```
 
-First use can download and load the selected model. Planning allows 1,200
-seconds for the runtime's normal model preparation, a 300-second planning request
-and 30 seconds for phase startup and validation (1,530 seconds total). Its
-Docker worker allows 1,620 seconds, including cleanup. Adaptive decisions use
-a 180-second request timeout inside the existing 900-second simulation budget.
-Their model packet includes the current step's wells, declared alternates and
-tip count; full deck snapshots remain in the trace and deterministic policy.
-A notice that Docker
-Model Runner has not supplied byte progress is a preparation heartbeat; it
-does not establish a stalled download. Model errors and exhausted deadlines
-still fail the run, with no automatic repeat model call. Existing hired
-co-workers need their prepared Job definition refreshed to use this budget.
+Use **Overview** for the full bench and **Deck** for the overhead camera.
+**Equipment** shows the positions observed in the USD stage after the current
+render. Choose a joint and target to move the arm. Use **Hold motion** to keep
+the current positions and **Home arm** to return the four arm joints to their
+starting positions. The inspection station has a separate lid and the arm has
+an inspection light. **Recent actions** shows the latest controls that Isaac Sim
+applied. A motion stays **Moving** until the target is reached or held.
 
-For your own file:
+Pause or stop the co-worker to shut down the workspace and simulator. Resuming
+opens a fresh session at the starting positions. The most recent equipment
+observation is stored in the Job's run store and configured output folder as
+`equipment_state.json`. The default output folder is
+`~/Downloads/web-lab-operator`. Use its observation time and service status
+when reviewing a saved state.
 
-```bash
-mn blueprint run ./web_lab_operator --set inputs.payload.procedure_file=/absolute/path/procedure.md
-```
+## OpenUSD assets
 
-The synthetic Markdown example runs a 20-step dilution series across source,
-dilution and readout plates. A 320 uL transfer uses the declared reserve and
-splits into 300 + 20 uL chunks. Three mixing steps, serial transfers, three
-readout aliquots, a diluent-only blank and seven volume checks follow. The blank’s
-primary source has only 20 uL left after earlier work, so its 40 uL transfer
-also needs a declared reserve. A successful run meets eleven final
-volume goals, records two adaptations and leaves 83 unused tips. Model
-interpretation and decisions remain live; there is no production fake-model
-success path.
+Open [web_lab.usda](payloads/isaac/assets/web_lab.usda) in Isaac Sim to inspect
+the full bench. It references the reusable
+[andrew_plus.usda](payloads/isaac/assets/andrew_plus.usda) component. Keep the
+two files together when copying the scene.
 
-The sequence adapts PyLabRobot's [serial dilution and aliquot examples](https://discuss.pylabrobot.org/t/request-for-feedback-higher-level-methods-in-lh-aliquot-and-serial-dilution/138)
-and [tracker tutorial](https://docs.pylabrobot.org/0.2.1/user_guide/machine-agnostic-features/using-trackers.html)
-to the supported one-channel simulator. The shortages are synthetic inventory
-conditions, not observed physical accidents.
+The column, folding arm, dock and modular bench fixtures take visual cues from
+Michael Raspuzzi's Andrew+ visualization. The USD geometry and control limits
+are original and illustrative. The arm and lid are kinematic, and the deck
+contains dry inspection props. [3D Lab Views](https://michaelraspuzzi.github.io/labautomationin3d/#andrew-plus)
 
-Chat warns before a tracked source shortage, overflow, invalid mixing volume or
-tip shortage affects the next step. A separate notice confirms a completed
-reserve transfer or explains why the procedure stopped. These notices use the
-runtime's existing conversation channel and stable identities; resuming does
-not duplicate an already published notice. Delivery failure stops the phase
-visibly, preserving confirmed steps for resume. Warnings never authorize an
-undeclared source or change the procedure.
-
-Open **Web lab** as soon as the run starts. The 3D workcell is empty during
-intake and planning. Once the plan is validated, the simulation worker supplies
-the plates, starting volumes and live tip state. Watch the pipette move between
-the tip rack, wells and waste chute as PyLabRobot confirms operations. A pushed
-snapshot follows every command before the configured animation delay, so both
-halves of a mix stay visible. Reconnecting viewers receive the current snapshot.
-Rotate or zoom the deck and use **Fit deck** to reset the view. Hover over or
-select a well to inspect its tracked volume and liquid labels.
-
-The original workcell geometry follows the Hamilton-style gantry and pipette
-assembly illustrated by [3D Lab Views](https://michaelraspuzzi.github.io/labautomationin3d/#hamilton).
-PyLabRobot supplies the simulated state. Equipment positions and movement in the
-viewer are illustrative.
-
-Live operation highlights are transient; saved step evidence retains its existing
-authority. The page contains the simulation and a compact event stream below it,
-with the latest event first. Risk messages remain in the stream and saved trace;
-full goals and qualifications stay in the report. The replay uses the same 3D
-workcell and adds controls for stepping through recorded observations offline.
-Each phase owns its listener
-and closes it on completion, cancellation or failure. The desktop follows the
-new page automatically, including in a detached window. The
-optional saved replay then becomes the run's web result. The Web UI descriptor
-declares its static HTML adapter so the desktop can open the replay after the
-live listener retires. During phase handoffs, the desktop keeps the open page
-while checking the next claim and updates the original Web UI ready notice.
-The retiring phase sends a final snapshot so its page shows the phase change
-or final outcome instead of repeatedly reconnecting to a closed listener.
-Use the existing
-co-worker controls to pause, resume or stop; asking a question never starts work.
-
-## Write a procedure
-
-Provide either `inputs.payload.procedure_markdown` or
-`inputs.payload.procedure_file`, and clear the other value. Text and files are
-bounded to 32,000 UTF-8 bytes. Files use `.md` and are staged by the runtime.
-The default file is
-[`examples/sample_inputs/procedure.md`](examples/sample_inputs/procedure.md).
-The sample folder includes its README and `SAMPLE_DATASET_MANIFEST.json` inventory.
-`examples/task.json` contains run inputs; `examples/demo.json` is a configuration
-overlay selecting the same sample. Expected model responses are test fixtures
-under `tests/fixtures/web_lab_operator/`, outside the published package.
-
-Include:
-
-1. The purpose and names of one to four 96-well plates (360 uL per well).
-2. A starting inventory with exact plate/well, liquid label and volume in uL.
-   All unlisted wells are empty. A single rack supplies 96 fresh 300 uL tips.
-3. Numbered instructions using transfer, mix, wait or volume check.
-4. Explicit final well-volume goals and tolerances (0..5 uL).
-5. Any allowed alternate source for each transfer. It must have the same
-   nominal liquid identity and hold the full requested amount by itself.
-
-The plan retains the primary source and allowed reserves. A short primary source
-can still produce a ready plan when an allowed reserve holds the full transfer.
-The planner checks final goals against that feasible conditional branch and
-keeps starting inventory separate from expected final volumes.
-Planning and adaptive requests use temperature zero; model interpretation still
-requires the schema, policy and observed-result checks described below.
-The planning response groups each step's operation fields under `parameters`,
-so constrained generation selects `kind` before operation-specific fields even
-when schema keys are sorted. The blueprint validates this response and projects
-it into the existing flat execution plan; `plan.json` keeps its existing format.
-Mixes, waits and checks have distinct parameter schemas and cannot be represented
-as self-transfers. Instruction coverage is checked before simulation starts.
-Token-limit truncation and invalid JSON produce distinct planning errors and
-never trigger an automatic repeat request or a synthesized plan. Refresh an
-existing hired co-worker's prepared Job definition to use the updated planner.
-The simulator selects the reserve after observing the deck, takes the complete
-amount from it and leaves the short primary unchanged.
-
-Transfers are bounded to 360 uL and split into chunks of at most 300 uL. Each
-chunk uses a fresh tip. Mixing uses one fresh tip, at most 300 uL and 1..10 cycles.
-Waits advance virtual time by 0..30 seconds; they do not simulate reactions.
-There are at most 80 steps and a 900-second simulation-phase deadline.
-`simulation.max_steps`, `simulation.max_duration_seconds` and
-`simulation.action_delay_seconds` can reduce those bounds or change animation
-pacing. They cannot enable physical operation or an unsupported instrument.
-
-The model must mark assumptions or unsupported instructions **Needs review**.
-Every numbered source instruction must be represented in a ready plan. Intake
-supplies exact physical line references for those instructions; the coverage
-validator uses the same parser. Before each action, deterministic policy checks
-deck resources, available tips, source
-volume, destination capacity and the adaptation envelope. It cannot revise the
-goal, transfer amount, destination or step order. A failed check, missing source,
-unsafe decision or exhausted inventory ends the procedure with review evidence.
-Revise the Markdown and start a new run to correct it.
-
-## Remember prior work
-
-Memory is enabled by default. After each confirmed step, the co-worker saves
-its action, affected wells before and after, tip count, outcome and source
-references as authored Markdown through the SDK's Membrane TextMemory API.
-Successful adaptations, failed checks, rejected choices and pauses stay
-distinct. The final run record includes completion and unmet goals. Interrupted
-runs also attempt to save a qualified failure or cancellation record; a memory
-failure during cleanup is recorded in `memory-interruption-error.json` while
-the original runtime failure remains visible.
-
-Before planning, recall includes earlier outcomes for this exact procedure and
-recent run summaries from the same hired co-worker. A revised procedure can see
-earlier review issues without inheriting their inventory or instructions.
-Before every simulated step, recall selects matching procedure/step identities
-and recent observations from the current run, reserving space for both successes
-and failures. This history is supplied to the model to inform its next decision;
-it does not change model weights. The current Markdown, observed deck and
-deterministic execution policy remain authoritative. Historical text cannot add
-sources, bypass a check or authorize hardware.
-
-Memory is private to the stable runtime Job and the web lab principal. Repeated
-runs of that hired co-worker share it; another hired Job has separate memory.
-Records include run, procedure and policy provenance. The runtime owns durable
-Markdown and DuckDB storage, authentication and service preparation. Reference
-knowledge RAG remains separate. No runtime changes or blueprint-owned memory
-database are needed.
-
-`text_memory.max_results` defaults to 6 (supported 3..12), with an 18,000-byte
-`text_memory.max_context_bytes` share. Retrieval is bounded, not exhaustive;
-oversized records are omitted whole and omissions are visible in `memory.json`.
-Selection is frozen before model dispatch, so resume cannot replace a decision's
-original history with its own later outcomes. SDK checkpoints and immutable
-Membrane records prevent duplicate learning on replay. When enabled, unavailable
-memory stops the phase; it does not silently run without history. An explicit
-`text_memory.enabled=false` override disables reads, writes and service
-preparation and marks the saved audit as disabled.
-
-## Inspect the evidence
-
-| Artifact | Contents |
-| --- | --- |
-| `procedure.md` | Exact supplied Markdown and its SHA-256 identity in the result |
-| `plan.json` | Typed plan, initial inventory, instruction-line references and unresolved items |
-| `trace.json` | Initial state, each decision, pre/post observations and outcomes |
-| `simulation.json` | Final tracked state and volume goals |
-| `memory.json` | History supplied to each model decision, source citations, query witnesses and saved outcome receipts |
-| `report.md`, `final_artifact.json`, `result.json` | Review outcome and qualifications |
-| `web/index.html`, `web_ui.json` | Optional standalone replay and static Web UI handle |
-| `interrupted-simulation.json` | Qualified observed state when a phase is interrupted |
-
-The runtime owns output delivery to `~/Downloads/web-lab-operator/run_<timestamp>/`.
-Large results stay in committed artifacts rather than coordination messages.
-Required report publication failures remain failures; optional replay-rendering
-failure cannot invalidate an already recorded simulation or required report.
-
-## Runtime composition and privacy
-
-`capture_lab_procedure` → `plan_lab_procedure` → `simulate_lab_procedure` →
-`publish_lab_review` uses stock `domain_operation`
-blocks. SDK input capture, managed model journals, checkpoints, publication and
-Web UI claims and Membrane persistence retain their existing owners. Intake and
-planning scope their own deck listeners, including failure
-and cancellation cleanup, using the supported blocks 1.3.73 contract. Planning
-uses the SDK's managed model request journal and the block's output schema. Use
-a desktop build that follows changes to the runtime UI claim. Domain policy, the
-PyLabRobot integration and selected presentation live under `payloads/domain/`.
-
-The Python 3.12 Docker image installs pinned PyLabRobot and WebSocket versions.
-The viewer uses a bundled, MIT-licensed Three.js build and serves its scripts
-through the Job UI proxy. Planning and adaptive decisions send the procedure
-and selected simulation state and recalled experience to the configured model route.
-Selected simulation experience persists in the authenticated job-private Membrane service.
-No robot address,
-serial/USB device, arbitrary tool, shell or generated-code endpoint is exposed.
-The standard runtime Web UI proxy owns authentication and cross-node transport.
-
-Completed step checkpoints are immutable. A replacement attempt reconstructs a
-fresh simulator from confirmed actions and compares each restored observation.
-SDK model receipts prevent repeat billing on ordinary replay; an uncertain model
-outcome remains fenced. A partly failed simulated command requires a new run.
+The standard MirrorNeuron service blocks supervise Isaac Sim and authorize the
+Job workspace through its Web UI proxy. The controls apply to the USD session
+layer. The workspace shows camera pixels and equipment positions from that
+same session.
 
 ## Validate
 
-With the repository's sibling SDK/agent/skill sources and Python test dependencies:
+Run the focused service and placement checks from the catalog root using its
+companion test environment:
 
-```bash
-python -m pytest tests/test_web_lab_operator.py -q
-python -m pytest tests/test_membrane_catalog.py tests/test_sdk_package_contracts.py -q -k web_lab_operator
-python -m pytest tests/test_manifest_contracts.py -q
-python -m pytest tests -q
-git diff --check
+```sh
+python -m pytest tests/test_web_lab_operator.py tests/test_web_lab_operator_placement.py tests/test_mcp_web_lab_operator.py -q
 ```
 
-Unit and compiled-handler tests inject deterministic model responses and never
-contact a provider. PyLabRobot tracker tests use its real Chatterbox backend.
-Live model, Docker build, cross-node UI proxy and Core pause/resume acceptance
-are separate opt-in checks; offline tests do not qualify those integrations.
+On a running Isaac Sim job, pass its Web UI proxy URL to the Playwright smoke
+test with an isolated validation session:
 
-For a Chromium check of the bundled 3D viewer through the local Job UI proxy, run:
-
-```bash
-python tests/e2e/web-lab-operations.py
+```sh
+node tests/e2e/web-lab-operations.cjs <web-ui-proxy-url>
 ```
-
-This opt-in check uses the desktop checkout's Playwright installation (override
-with `OTTERDESK_APP_ROOT`), the sibling API proxy and real Chatterbox trackers.
-It checks live tip and well changes, camera controls, reconnect, wide/narrow
-resizing, normal listener cleanup and offline replay without model calls. Screenshots go to
-`/private/tmp/web-lab-live-operations` or `WEB_LAB_E2E_OUTPUT`.
-
-Reference: [PyLabRobot](https://github.com/PyLabRobot/pylabrobot) and its
-[Visualizer guide](https://docs.pylabrobot.org/stable/user_guide/machine-agnostic-features/using-the-visualizer.html).

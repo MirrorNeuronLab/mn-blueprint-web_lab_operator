@@ -1,3 +1,1 @@
-pylabrobot==0.2.1
-websockets==17.4
-jsonschema>=4.23,<5
+websockets==15.0.1

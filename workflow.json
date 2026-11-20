@@ -1,6 +1,6 @@
 {
   "$schema": "https://mirrorneuron.io/schemas/blueprint/v1/workflow.schema.json",
-  "workflow_id": "web_lab_operator_v1",
+  "workflow_id": "web_lab_operator_v2",
   "mode": "static_dag",
   "execution": {
     "strategy": "serial",
@@ -8,53 +8,19 @@
   },
   "steps": [
     {
-      "id": "capture_lab_procedure",
-      "kind": "source",
-      "label": "Capture procedure",
-      "goal": "Capture procedure. Preserve procedure identity, observations and simulation limits.",
-      "needs": [],
-      "control": {
-        "retry": {
-          "max_attempts": 1
-        }
-      }
-    },
-    {
-      "id": "plan_lab_procedure",
+      "id": "check_workcell",
       "kind": "stage",
-      "label": "Plan simulated procedure",
-      "goal": "Plan simulated procedure. Preserve procedure identity, observations and simulation limits.",
-      "needs": [
-        "capture_lab_procedure"
-      ],
-      "control": {
-        "retry": {
-          "max_attempts": 1
-        }
-      }
+      "label": "Check the workcell setup",
+      "goal": "Check that the scene assets and an NVIDIA GPU are available inside the worker.",
+      "needs": []
     },
     {
-      "id": "simulate_lab_procedure",
+      "id": "monitor_live_workcell",
       "kind": "stage",
-      "label": "Run and observe simulation",
-      "goal": "Run and observe simulation. Preserve procedure identity, observations and simulation limits.",
+      "label": "Operate the live workcell",
+      "goal": "Render the workcell in Isaac Sim and observe changes from manual controls.",
       "needs": [
-        "capture_lab_procedure",
-        "plan_lab_procedure"
-      ],
-      "control": {
-        "retry": {
-          "max_attempts": 1
-        }
-      }
-    },
-    {
-      "id": "publish_lab_review",
-      "kind": "sink",
-      "label": "Publish lab review",
-      "goal": "Publish lab review. Preserve procedure identity, observations and simulation limits.",
-      "needs": [
-        "simulate_lab_procedure"
+        "check_workcell"
       ],
       "control": {
         "retry": {
