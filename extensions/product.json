@@ -2,7 +2,7 @@
   "$schema": "https://mirrorneuron.io/schemas/blueprint/v1/extensions/product.schema.json",
   "category": "Research",
   "intent": {
-    "problem": "See how a dilution series produces a predictable range of dye concentrations.",
+    "problem": "Prepare a predictable range of dye concentrations and check the results against their targets.",
     "target_users": "Lab automation developers and educators.",
     "safety": {
       "enabled": true,
@@ -16,16 +16,16 @@
     }
   },
   "product": {
-    "agent_role": "Simulated lab equipment operator",
-    "benefit": "Watch one stock dye become three weaker samples.",
-    "how_it_works": "Isaac Sim shows each draw and dispense, the resulting dye strengths, and the workcell's response to manual controls.",
-    "input": "The bundled dye and water sample and manual operator controls.",
-    "output": "Live overview and deck cameras, dilution progress and concentrations, equipment state and recent actions.",
+    "agent_role": "Simulated lab workcell operator",
+    "benefit": "Follow the preparation and check of a set of dye references.",
+    "how_it_works": "Isaac Sim shows the MK3 pipette preparing three dilutions. Each vessel is checked using the color and fill observed in the scene.",
+    "input": "The bundled sample of stock food dye, water and a separate water blank.",
+    "output": "Live workcell and sample tray views, transfer progress and results for five vessels.",
     "runtime_features": [
       "Isaac Sim",
       "OpenUSD",
       "Live cameras",
-      "Manual motion controls"
+      "Simulated color and fill checks"
     ]
   }
 }

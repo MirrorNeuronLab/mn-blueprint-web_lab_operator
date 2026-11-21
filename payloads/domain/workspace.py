@@ -14,7 +14,7 @@ from websockets.datastructures import Headers
 from websockets.exceptions import ConnectionClosed
 from websockets.http11 import Response
 
-from .equipment import CommandError, command_from_message
+from .sample_run import CommandError, command_from_message
 
 
 ASSETS = Path(__file__).resolve().parents[1] / "web_assets"
@@ -23,15 +23,14 @@ FILES = {
     "/app.js": ("app.js", "text/javascript; charset=utf-8"),
     "/style.css": ("style.css", "text/css; charset=utf-8"),
 }
-CAMERAS = {"overview": "/World/Cameras/Overview", "deck": "/World/Cameras/Deck"}
+CAMERAS = {"overview": "/World/Cameras/Overview", "samples": "/World/Cameras/Samples"}
 STALE_SECONDS = 5
 
 
 class LiveFrames:
     """Exchange one pending command and the latest observed frame between threads."""
 
-    def __init__(self, joints):
-        self.joints = joints
+    def __init__(self):
         self.lock = Lock()
         self.latest = None
         self.pending = None
@@ -53,7 +52,7 @@ class LiveFrames:
             return self.pending
 
     def submit(self, message):
-        command = command_from_message(message.get("command"), self.joints)
+        command = command_from_message(message.get("command"))
         revision = message.get("revision")
         with self.lock:
             if self.latest is None or time.monotonic() - self.last_frame_at >= STALE_SECONDS:
@@ -61,9 +60,9 @@ class LiveFrames:
             if self.pending or type(revision) is not int or revision != self.latest[0]["revision"]:
                 raise CommandError("The controls changed. Check the current state and try again.")
             sample_running = self.latest[0]["sample"]["status"] == "running"
-            if command["action"] == "stop_sample" and not sample_running:
+            if command == "stop_sample" and not sample_running:
                 raise CommandError("The sample has already finished.")
-            if command["action"] == "restart_sample" and sample_running:
+            if command == "restart_sample" and sample_running:
                 raise CommandError("Stop the current sample before running it again.")
             self.pending = revision + 1, command
             return self.pending[0]
@@ -82,7 +81,9 @@ class Workspace:
 
     def _run(self, host, port):
         try:
-            asyncio.run(self._serve(host, port))
+            # Kit replaces asyncio.run with a wrapper that stops its main loop.
+            with asyncio.Runner(loop_factory=asyncio.SelectorEventLoop) as runner:
+                runner.run(self._serve(host, port))
         except Exception as error:
             if not self.bound_port.done():
                 self.bound_port.set_exception(error)

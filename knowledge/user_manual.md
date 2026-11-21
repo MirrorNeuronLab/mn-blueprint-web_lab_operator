@@ -5,21 +5,15 @@ NVIDIA Container Toolkit and at least 48 GiB of NVIDIA GPU-accessible memory.
 The included workcell runs in Isaac Sim on DGX Spark.
 
 Open **Web lab live** when the co-worker reports that the cameras are ready.
-Use **Overview** to see the bench and **Deck** for the overhead view. Equipment
-readings come from the current simulated frame.
+Use **Overview** to see the MK3 box cell or **Sample tray** to follow the pipette
+and read the vessel labels.
 
-The dye dilution runs automatically. Watch the pipette draw and dispense as
-food dye is mixed with water. Compare the stock dye with three lower
-concentrations of 50%, 25% and 12.5%. Use **Stop sample** to keep the current
-state and **Run sample again** to replay from the beginning.
+The sample prepares three dilutions and checks their simulated color and fill
+alongside the stock dye and water blank. The table shows the target and observed
+dye strength relative to stock. A check marked **Review** means the color or
+fill differs from its target.
 
-Choose a joint, enter a target and select **Move joint**. **Hold motion** keeps
-the current position and clears pending movement targets. **Home arm** returns
-the arm joints to their starting positions. Operate the inspection lid and
-light with their own controls. Recent actions show controls that were applied.
-All controls are scoped to the simulated workcell.
-
-Pause or stop the co-worker to shut down the simulator. Resume to start a fresh
-sample. Open `equipment_state.json` in the configured output folder to review
-the last dye concentrations, observed positions, light and action history with
-their observation time.
+Use **Stop sample** to keep the current pose and readings. **Run sample again**
+restores the initial tray and starts again. Pause or stop the co-worker to shut
+down Isaac Sim. Resume to start a fresh sample. The configured output folder
+contains the latest observation and checks in `equipment_state.json`.

@@ -1,6 +1,5 @@
 # Simulation terms
 
-The workcell is an illustrative OpenUSD model for operator interaction in
-NVIDIA Isaac Sim. Its motion limits, positions, speeds and inspection equipment
-describe the simulated asset. Camera images and saved telemetry describe that
-simulation session.
+The OLA MK3 workcell models a food-dye sample in NVIDIA Isaac Sim. Its motion,
+liquid levels and color readings describe the simulated scene. Camera images and
+saved evidence describe the selected simulation session.

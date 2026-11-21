@@ -18,7 +18,7 @@
       "id": "monitor_live_workcell",
       "kind": "stage",
       "label": "Operate the live workcell",
-      "goal": "Run the dye dilution in Isaac Sim and render sample progress and manual equipment controls.",
+      "goal": "Prepare and check simulated dye references in the live MK3 workcell.",
       "needs": [
         "check_workcell"
       ],

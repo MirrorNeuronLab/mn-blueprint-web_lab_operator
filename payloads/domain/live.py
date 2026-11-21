@@ -16,12 +16,13 @@ from mn_sdk_common.beacon import mark_agent_progress
 from mn_sdk_common.files import atomic_write_json
 from mn_sdk_web_ui import resolve_web_ui_binding
 
+from .sample_run import STATE_VERSION
+
 
 PAYLOAD = Path(__file__).resolve().parents[1]
 STAGE = PAYLOAD / "isaac" / "assets" / "web_lab.usda"
-STAGE_LAYERS = (
-    "web_lab.usda", "andrew_plus.usda", "dilution_station.usda",
-    "vendor/mk3_frame.usdc", "vendor/erlenmeyer_flask.usdc",
+STAGE_ASSETS = (
+    "web_lab.usda", "dilution_station.usda", "sample_labels.png", "vendor/mk3_cell.usdc",
 )
 ISAAC_PYTHON = Path("/isaac-sim/python.sh")
 STATE_PATH = "equipment_state.json"
@@ -30,7 +31,7 @@ FRAME_TIMEOUT = 12
 
 def check_workcell(_block, _inputs):
     if not ISAAC_PYTHON.is_file() or not all(
-        (STAGE.parent / name).is_file() for name in STAGE_LAYERS
+        (STAGE.parent / name).is_file() for name in STAGE_ASSETS
     ):
         raise RuntimeError("The OpenUSD workcell or Isaac Sim runtime is missing.")
     try:
@@ -68,9 +69,8 @@ class LabSession:
         self.binding = resolve_web_ui_binding(block.config, environment=block.environment)
         self.locations = dict.fromkeys((block.store.path(STATE_PATH), block.output_directory / STATE_PATH))
         self.state = {
-            "schema_version": "mn.web_lab.state.v1", "status": "starting",
-            "frame": 0, "revision": 0, "observed_at": None, "motion": None,
-            "joints": {}, "inspection_light": None, "sample": None, "recent_actions": [],
+            "schema_version": STATE_VERSION, "status": "starting",
+            "frame": 0, "revision": 0, "observed_at": None, "sample": None, "recent_actions": [],
         }
         self.work = None
         self.process = None
@@ -162,7 +162,10 @@ class LabSession:
         sample = self.state["sample"]
         if sample and sample["status"] != self.last_sample_status:
             if sample["status"] == "complete":
-                report_activity("Finished the dye dilution sample", kind="result")
+                if sample["check"]["status"] == "passed":
+                    report_activity("All five dye references passed the color and fill checks", kind="result")
+                else:
+                    report_activity("The dye references need review", kind="finding")
             self.last_sample_status = sample["status"]
         return {"frame": self.state["frame"]}
 

@@ -2,15 +2,14 @@
   'use strict';
 
   const byId = id => document.getElementById(id);
-  const joint = byId('joint');
-  const target = byId('target');
-  const range = byId('range');
   const preview = byId('frame');
-  const cameraButtons = [...document.querySelectorAll('[data-camera]')];
-  const readings = [...document.querySelectorAll('[data-reading]')];
   const sampleControl = byId('sample-control');
   const wells = byId('sample-wells');
+  const feedback = byId('feedback');
+  const cameraButtons = [...document.querySelectorAll('[data-camera]')];
+  const cameraNames = {overview: 'Overview', samples: 'Sample tray'};
   const clock = new Intl.DateTimeFormat(undefined, {hour: 'numeric', minute: '2-digit', second: '2-digit'});
+  const checkLabels = {pending: 'Pending', passed: 'Match', needs_review: 'Review'};
   let camera = 'overview';
   let socket;
   let current;
@@ -32,98 +31,86 @@
     write(node, label);
   }
 
-  function configureTarget() {
-    const axis = current?.joints[joint.value];
-    if (!axis) return;
-    for (const input of [target, range]) {
-      input.min = axis.min;
-      input.max = axis.max;
-      input.value = Math.round(axis.target);
-    }
-    write(byId('unit'), '(' + axis.unit + ')');
-  }
-
   function online() {
     return socket?.readyState === WebSocket.OPEN && current && performance.now() - lastFrameAt < 5000;
   }
 
   function controls() {
     const live = Boolean(online());
-    const busy = !live || Boolean(pending);
-    byId('position-controls').disabled = busy;
-    byId('hold').disabled = busy || current.motion !== 'moving';
-    byId('home').disabled = busy;
-    byId('lid').disabled = busy;
-    byId('light').disabled = busy;
-    sampleControl.disabled = busy || !current?.sample;
+    sampleControl.disabled = !live || Boolean(pending);
     for (const button of cameraButtons) button.disabled = !live;
     if (live) {
       badge('connection', 'live', 'Live');
-      badge('motion', current.motion, {ready: 'Ready', moving: 'Moving', held: 'Held'}[current.motion]);
     } else {
       badge('connection', current ? 'disconnected' : 'waiting', current ? 'Disconnected' : 'Connecting');
-      badge('motion', 'waiting', current ? 'State unavailable' : 'Waiting');
     }
   }
 
   function renderSample(sample) {
-    const labels = {running: 'Running', complete: 'Complete', stopped: 'Stopped'};
-    badge('sample-status', sample.status, labels[sample.status]);
+    const running = sample.status === 'running';
+    const checking = sample.phase === 'checking' || sample.phase === 'complete';
+    const labels = {running: 'Running', checking: 'Checking', passed: 'Passed', needs_review: 'Needs review', stopped: 'Stopped'};
+    const state = sample.status === 'complete' ? sample.check.status : running && checking ? 'checking' : sample.status;
+    badge('sample-status', state, labels[state]);
     write(byId('sample-action'), sample.action);
-    write(sampleControl, sample.status === 'running' ? 'Stop sample' : 'Run sample again');
+    write(sampleControl, running ? 'Stop sample' : 'Run sample again');
+    sampleControl.classList.toggle('primary', !running);
     const progress = byId('sample-progress');
-    progress.max = sample.total_transfers;
-    progress.value = sample.completed_transfers;
+    progress.max = sample.total_transfers + sample.check.total;
+    progress.value = sample.completed_transfers + sample.check.checked;
+    const count = checking ? `${sample.check.checked} of ${sample.check.total} checked`
+      : `${sample.completed_transfers} of ${sample.total_transfers} transfers`;
+    write(byId('sample-count'), count);
+    const criteria = byId('criteria');
+    write(criteria, `Each vessel needs the expected fill and color within ${sample.check.tolerance_pp} percentage points.`);
+    criteria.hidden = !checking;
+
     if (!wells.children.length) {
       for (const well of sample.wells) {
-        const row = document.createElement('div');
-        const name = document.createElement('dt');
-        const concentration = document.createElement('dd');
+        const row = document.createElement('tr');
+        const name = document.createElement('th');
+        name.scope = 'row';
         name.textContent = well.name;
-        row.append(name, concentration);
+        row.append(name, ...['target', 'observed', 'check'].map(column => {
+          const cell = document.createElement('td');
+          cell.className = column;
+          return cell;
+        }));
         wells.append(row);
       }
     }
     sample.wells.forEach((well, index) => {
       const row = wells.children[index];
-      const strength = well.concentration_percent + '%';
-      row.style.setProperty('--dye', strength);
-      write(row.lastElementChild, strength);
+      row.style.setProperty('--dye', Math.min(100, well.concentration_percent) + '%');
+      row.dataset.active = String(well.name === sample.reading_well);
+      row.dataset.check = well.check;
+      write(row.cells[1], well.target_percent + '%');
+      write(row.cells[2], well.concentration_percent + '%');
+      write(row.cells[3], checkLabels[well.check]);
+      row.cells[3].title = well.issues.join('. ');
+      row.cells[3].setAttribute('aria-label', [checkLabels[well.check], ...well.issues].join('. '));
     });
-    wells.hidden = false;
-  }
-
-  function feedback(message) {
-    write(byId(pending?.feedback ?? 'command-feedback'), message);
+    byId('sample-results').hidden = false;
   }
 
   function renderState(state, cameraId) {
     const newSession = !current || state.frame < current.frame;
     if (newSession || state.frame > current.frame || lastFrameAt === 0) lastFrameAt = performance.now();
     current = state;
-    if (newSession) configureTarget();
     if (pending?.id && state.revision >= pending.id) {
-      feedback('');
       pending = undefined;
+      write(feedback, '');
     }
-    for (const node of readings) {
-      const axis = state.joints[node.dataset.reading];
-      const value = axis.unit === '°' ? axis.value + '°' : axis.value + ' ' + axis.unit;
-      write(node, value);
-    }
-    write(byId('light-state'), state.inspection_light ? 'On' : 'Off');
-    write(byId('light'), state.inspection_light ? 'Turn light off' : 'Turn light on');
-    write(byId('lid'), state.joints.lid.target === state.joints.lid.min ? 'Close lid' : 'Open lid');
-    const title = cameraId === 'overview' ? 'Overview' : 'Deck';
+    const title = cameraNames[cameraId];
     write(byId('camera-label'), title);
     preview.alt = title + ' camera of the simulated workcell';
     write(byId('observed-at'), 'Observed ' + clock.format(new Date(state.observed_at)));
     for (const button of cameraButtons) button.setAttribute('aria-pressed', String(button.dataset.camera === cameraId));
-    if (state.sample) renderSample(state.sample);
+    renderSample(state.sample);
 
     const recentId = state.recent_actions[0]?.id ?? 0;
     if (eventId !== recentId || newSession) {
-      byId('activity-empty').hidden = state.recent_actions.length > 0;
+      byId('activity').hidden = state.recent_actions.length === 0;
       byId('events').replaceChildren(...state.recent_actions.map(action => {
         const row = document.createElement('li');
         const label = document.createElement('span');
@@ -139,11 +126,11 @@
     controls();
   }
 
-  function send(command, feedbackId = 'command-feedback') {
+  function send(action) {
     if (!online() || pending) return;
-    socket.send(JSON.stringify({command, revision: current.revision}));
-    pending = {id: null, deadline: performance.now() + 5000, feedback: feedbackId};
-    feedback('Applying control…');
+    socket.send(JSON.stringify({command: {action}, revision: current.revision}));
+    pending = {id: null, deadline: performance.now() + 5000};
+    write(feedback, 'Applying control…');
     controls();
   }
 
@@ -155,7 +142,7 @@
       } else if (message.type === 'accepted' && pending) {
         pending.id = message.id;
       } else if (message.type === 'rejected') {
-        feedback(message.message);
+        write(feedback, message.message);
         pending = undefined;
         controls();
       }
@@ -206,27 +193,14 @@
       clearTimeout(opening);
       lastFrameAt = 0;
       frameHeader = undefined;
-      if (pending) feedback('Connection interrupted. Check recent actions after reconnecting.');
+      if (pending) write(feedback, 'Connection interrupted. Check recent controls after reconnecting.');
       pending = undefined;
       controls();
       reconnect();
     });
   }
 
-  joint.addEventListener('change', configureTarget);
-  range.addEventListener('input', () => { target.value = range.value; });
-  target.addEventListener('input', () => { range.value = target.value; });
-  byId('move-form').addEventListener('submit', event => {
-    event.preventDefault();
-    send({action: 'move', joint: joint.value, target: target.valueAsNumber});
-  });
-  byId('hold').addEventListener('click', () => send({action: 'hold'}));
-  byId('home').addEventListener('click', () => send({action: 'home'}));
-  byId('lid').addEventListener('click', () => send({action: 'lid', enabled: current.joints.lid.target !== current.joints.lid.min}));
-  byId('light').addEventListener('click', () => send({action: 'light', enabled: !current.inspection_light}));
-  sampleControl.addEventListener('click', () => send({
-    action: current.sample.status === 'running' ? 'stop_sample' : 'restart_sample',
-  }, 'sample-feedback'));
+  sampleControl.addEventListener('click', () => send(current.sample.status === 'running' ? 'stop_sample' : 'restart_sample'));
   for (const button of cameraButtons) button.addEventListener('click', () => {
     camera = button.dataset.camera;
     socket.send(JSON.stringify({camera}));

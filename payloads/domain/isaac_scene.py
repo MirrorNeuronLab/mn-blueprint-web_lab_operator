@@ -1,4 +1,4 @@
-"""Apply manual controls to the OpenUSD workcell and render observed state."""
+"""Run the MK3 sample in Isaac Sim and stream its observed state."""
 
 import argparse
 import io
@@ -11,64 +11,12 @@ from pathlib import Path
 from threading import Event
 
 from .dilution_scene import StageDilution
-from .equipment import Equipment, Joint
+from .sample_run import SampleRun
 from .workspace import CAMERAS, LiveFrames, Workspace
 
 
 RESOLUTION = (896, 560)
 FRAME_INTERVAL = 1 / 6
-ARM = "/World/Equipment/Lift"
-JOINTS = {
-    "lift": ("Lift", ARM, "xformOp:translate", "mm", 1000),
-    "shoulder": ("Shoulder", ARM + "/Shoulder", "xformOp:rotateZ", "°", 1),
-    "elbow": ("Elbow", ARM + "/Shoulder/Elbow", "xformOp:rotateZ", "°", 1),
-    "wrist": ("Wrist", ARM + "/Shoulder/Elbow/Wrist", "xformOp:rotateZ", "°", 1),
-    "lid": ("Inspection lid", "/World/Equipment/InspectionStation/Lid", "xformOp:rotateX", "°", 1),
-}
-LIGHT = ARM + "/Shoulder/Elbow/Wrist/InspectionLight"
-
-
-class StageEquipment:
-    def __init__(self, stage):
-        from pxr import UsdGeom
-
-        if UsdGeom.GetStageUpAxis(stage) != UsdGeom.Tokens.z or UsdGeom.GetStageMetersPerUnit(stage) != 1:
-            raise ValueError("The Web Lab stage must use meters and Z up.")
-        stage.SetEditTarget(stage.GetSessionLayer())
-        self.joints, self.ops = {}, {}
-        for name, (label, path, attribute, unit, scale) in JOINTS.items():
-            prim = stage.GetPrimAtPath(path)
-            op = prim.GetAttribute(attribute)
-            value = op.Get()
-            home = value[2] if name == "lift" else value
-            lower, upper, speed = (prim.GetAttribute(f"webLab:{key}").Get() * scale for key in ("min", "max", "speed"))
-            self.ops[name] = op
-            self.joints[name] = Joint(label, unit, lower, upper, home * scale, speed)
-        self.light = stage.GetPrimAtPath(LIGHT).GetAttribute("inputs:intensity")
-        self.lit_intensity = stage.GetPrimAtPath(LIGHT).GetAttribute("webLab:onIntensity").Get()
-        self.commanded, self.light_on = self.observe()
-
-    def apply(self, positions, light_on):
-        from pxr import Gf
-
-        for name, value in positions.items():
-            if value == self.commanded[name]:
-                continue
-            op = self.ops[name]
-            if name == "lift":
-                before = op.Get()
-                op.Set(Gf.Vec3d(before[0], before[1], value / JOINTS[name][-1]))
-            else:
-                op.Set(value)
-            self.commanded[name] = value
-        if light_on != self.light_on:
-            self.light.Set(self.lit_intensity if light_on else 0)
-            self.light_on = light_on
-
-    def observe(self):
-        values = {name: op.Get() for name, op in self.ops.items()}
-        values["lift"] = values["lift"][2] * JOINTS["lift"][-1]
-        return values, self.light.Get() > 0
 
 
 def render(app, stage_path, work, host, port, stopping):
@@ -81,11 +29,10 @@ def render(app, stage_path, work, host, port, stopping):
     context = omni.usd.get_context()
     if not context.open_stage(str(stage_path)):
         raise RuntimeError("Isaac Sim couldn't open the Web Lab stage.")
-    rig = StageEquipment(context.get_stage())
     dilution = StageDilution(context.get_stage())
-    equipment = Equipment(rig.joints, light_on=rig.observe()[1])
-    dilution.apply(equipment.sample.observe().pose)
-    frames = LiveFrames(rig.joints)
+    run = SampleRun()
+    dilution.apply(run.sample.observe())
+    frames = LiveFrames()
     app.reset_render_settings()
     rep.orchestrator.set_capture_on_play(False)
     timeline = omni.timeline.get_timeline_interface()
@@ -119,12 +66,12 @@ def render(app, stage_path, work, host, port, stopping):
             workspace.check()
             command = frames.command()
             if command:
-                equipment.apply(*command)
-            equipment.advance(min(.2, tick - last_tick))
-            rig.apply(equipment.position, equipment.light_on)
-            dilution.apply(equipment.sample.observe().pose)
+                run.apply(*command)
+            run.sample.advance(min(.2, tick - last_tick))
+            observation = run.sample.observe()
+            dilution.apply(observation)
             rep.orchestrator.step(rt_subframes=1, delta_time=0.0, pause_timeline=True)
-            observed, light_on = rig.observe()
+            readings = dilution.observe()
             images = {}
             for camera, annotator in annotators.items():
                 rgb = np.asarray(annotator.get_data())
@@ -134,7 +81,7 @@ def render(app, stage_path, work, host, port, stopping):
                     Image.fromarray(rgb[:, :, :3]).save(output, "JPEG", quality=80)
                     images[camera] = output.getvalue()
             frame += 1
-            state = equipment.snapshot(frame, observed, light_on)
+            state = run.snapshot(frame, observation, readings)
             frames.publish(state, images)
             if tick >= next_write or command:
                 temporary.write_text(json.dumps({"port": workspace.port, "state": state}, allow_nan=False), encoding="utf-8")

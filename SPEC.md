@@ -2,13 +2,10 @@
 
 ## Outcome
 
-The co-worker owns one live Isaac Sim workcell per running service attempt.
-It opens the bundled, self-contained OpenUSD bench and continually renders
-overview and deck cameras. The included food-dye sample starts with the live
-cameras. The operator can move four arm joints, hold motion,
-return the arm to its starting positions, move an inspection-station lid,
-and switch an inspection light. The workcell uses inert props and kinematic
-transforms scoped to the simulated stage.
+The co-worker opens one bundled OLA MK3 box cell per Isaac Sim service attempt.
+It renders overview and sample tray cameras. The food-dye sample starts when
+both cameras stream. The gantry and liquid geometry are kinematic, and the
+color and fill readings describe the simulated USD scene.
 
 ## Runtime and lifecycle
 
@@ -17,42 +14,35 @@ transforms scoped to the simulated stage.
 - Start under the stock monitored-service block. Publish the workspace claim
   after both cameras produce images. Use the standard Job Web UI proxy for
   static assets and the bounded bidirectional WebSocket.
-- Supervise the process and rendered heartbeat. A failed process or stale
-  render stream fails the service. Pause or stop retires the claim and ends
-  the owned child process. A replacement or resumed attempt starts at the
-  authored pose and restarts the sample with a fresh command session.
+- A failed process or stale render stream fails the service. Pause or stop
+  retires the claim and ends the owned child process. A replacement or resumed
+  attempt starts at the authored pose with a fresh sample and command session.
 - Publish the last observed state to `equipment_state.json` while running and
-  on shutdown. Include service status, observation time, observed positions
-  and current targets, light state, sample status and concentrations, and up to
-  12 applied command receipts.
-  The position and activity fields qualify the last observation on shutdown.
+  on shutdown. The `mn.web_lab.state.v2` artifact contains service status,
+  observation time, the current sample and up to 12 applied control receipts.
 
-## Interaction and state
+## Sample and checks
 
-- Keep the arm and inspection lid's motion limits, starting positions and
-  rates in the USD asset. Validate the selected control server-side. Motion
-  advances toward the latest admitted target in bounded increments.
-- Read the simulated transforms and light state back from USD after rendering.
-  Send observations and a corresponding camera frame together. Switching
-  views changes only the selected viewer's camera.
-- Admit one manual command at a time. A current workspace session and state
-  revision are required. Report acceptance separately from an applied control
-  observation. On disconnect, the window disables controls, reconnects and
-  displays current state. An interrupted command is resolved from observed
-  state and recent actions.
-- Hold captures the currently rendered pose and clears active targets. A fresh
-  move or home command can start motion again. Home only targets the four arm
-  joints. Command admission and rendering continue while the workspace is closed.
+- Start with stock food dye, three receiving vessels with water and a separate
+  water blank. The pipette visits three successive source and destination pairs.
+  Each transfer updates the gantry pose, liquid level and color. The sample
+  tray labels and stream show the vessel and current action.
+- Check the five vessels at the end of the transfers. The read marker selects
+  the vessel being checked. Read the liquid cylinder heights and USD material
+  colors after rendering. Compare their derived dye strengths with 100%, 50%,
+  25%, 12.5% and 0%. A vessel passes when its fill is within 0.05 simulated
+  units of its target and its color reading is within two percentage points.
+- Show observed and expected dye strength and each vessel's check result beside
+  the matching camera frame. The sample reports **Needs review** if a reading
+  misses either check. Its saved observation includes the fill readings and the
+  reason for each mismatch.
 
-## Dye dilution sample
+## Workspace controls
 
-- The fixed sample starts with one vessel of stock dye and three vessels of
-  water. Each transfer visits the source and target on the USD stage, animates
-  the draw and dispense, and updates the corresponding liquid level and color.
-- Three transfers produce relative dye concentrations of 100%, 50%, 25% and
-  12.5%. The values come from the same deterministic mixing model used to paint
-  the rendered frame. The workspace shows the current action, completed transfer
-  count and relative concentration alongside each frame.
-- **Stop sample** freezes the current simulated pose and mixture. **Run sample
-  again** restores its starting pose and mixture. Both controls require the
-  current revision. The inspection bench uses its own manual controls.
+- **Stop sample** holds the pose and liquid state. **Run sample again** restores
+  the starting pose and mixture. Admit one control at a time using the current
+  workspace session and revision. Report acceptance separately from the applied
+  receipt in a rendered observation.
+- Switching camera views changes the selected viewer's camera. If disconnected,
+  disable controls, reconnect and show the current observation. Command admission
+  and rendering continue while the workspace is closed.

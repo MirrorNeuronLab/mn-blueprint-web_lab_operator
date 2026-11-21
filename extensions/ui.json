@@ -2,7 +2,7 @@
   "$schema": "https://mirrorneuron.io/schemas/blueprint/v1/extensions/ui.schema.json",
   "starter_questions": [
     "What does the dye dilution show?",
-    "How do I move the arm?",
+    "How does the workcell check the samples?",
     "What computer can run Web lab?"
   ],
   "setup_guide": {
@@ -11,8 +11,8 @@
     "sample": {
       "available": true,
       "title": "Dye dilution sample",
-      "description": "Watch three simulated transfers create a color gradient from food dye and water.",
-      "expected_output": "Live camera views and simulated dye concentrations, with the latest result saved alongside equipment readings.",
+      "description": "Watch the MK3 box cell prepare three dilutions and check them with the stock dye and a water blank.",
+      "expected_output": "Live camera views and a saved color and fill check for each vessel.",
       "values": {}
     },
     "real": {
@@ -42,13 +42,13 @@
     "run_guidance": {
       "on_start": "I’ll open the workcell in Isaac Sim and wait for both cameras.",
       "web_ui_ready": "Open Web lab live to follow the dye dilution and inspect the workcell.",
-      "output_ready": "Open the output folder to review the latest dye concentrations and equipment state."
+      "output_ready": "Open the output folder to review the latest dye concentrations and check results."
     }
   },
   "web_ui": {
     "enabled": true,
     "adapter": "external-url",
     "title": "Web lab live",
-    "description": "Follow the dye dilution and control the simulated equipment."
+    "description": "Watch the MK3 workcell prepare and check dye references."
   }
 }
